@@ -44,7 +44,7 @@ struct BaseView: View {
 			
 			CardView(
 				isRised: isRised,
-				isDetail: isDetailPresented
+				isFlipped: false // TODO:
 			)
 			.offset(
 				x: isDetailPresented ? 0 : cardScreenOffset.width,
@@ -52,6 +52,7 @@ struct BaseView: View {
 			)
 			.zIndex(isDetailPresented ? 2 : 0)
 			.allowsHitTesting(!isDetailPresented)
+			.scaleEffect(isDetailPresented ? 1.2 : 1)
 			.gesture(
 				DragGesture(minimumDistance: 0)
 					.onChanged { value in
