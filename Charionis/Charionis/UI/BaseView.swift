@@ -9,10 +9,11 @@ import SwiftUI
 
 struct BaseView: View {
     var body: some View {
-        VStack {
-            Text("Charionis")
-        }
-        .padding()
+		ZStack {
+			BackgroundView()
+			
+			CardView()
+		}
     }
 }
 
