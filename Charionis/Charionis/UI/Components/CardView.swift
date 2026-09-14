@@ -12,9 +12,10 @@ struct CardView: View {
 	
     var body: some View {
         RoundedRectangle(cornerRadius: 5)
-			.frame(width: 300, height: 170)
+			.frame(width: 320, height: 190)
 			.foregroundStyle(.white)
 			.shadow(radius: isRised ? 30 : 8, y: isRised ? 20 : 4)
+			.animation(.spring(response: 0.3, dampingFraction: 0.7), value: isRised)
     }
 }
 

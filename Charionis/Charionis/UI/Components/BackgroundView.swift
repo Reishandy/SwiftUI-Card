@@ -10,9 +10,14 @@ import SwiftUI
 struct BackgroundView: View {
 	// TODO: Change to actual bg image
     var body: some View {
-		GridShape(spacing: 50)
-			.stroke(Color.blue.opacity(0.25), lineWidth: 1)
-			.ignoresSafeArea()
+		ZStack {
+			Color.white
+			
+			GridShape(spacing: 50)
+				.stroke(Color.blue.opacity(0.25), lineWidth: 1)
+				.ignoresSafeArea()
+		}
+		.ignoresSafeArea()
     }
 }
 
