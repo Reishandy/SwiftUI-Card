@@ -10,9 +10,22 @@
 		8BF75D963057CB1300E470AC /* Charionis.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Charionis.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		8BF75ED530591AA300E470AC /* Exceptions for "Charionis" folder in "Charionis" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 8BF75D953057CB1300E470AC /* Charionis */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		8BF75D983057CB1300E470AC /* Charionis */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8BF75ED530591AA300E470AC /* Exceptions for "Charionis" folder in "Charionis" target */,
+			);
 			path = Charionis;
 			sourceTree = "<group>";
 		};
@@ -256,7 +269,10 @@
 				DEVELOPMENT_TEAM = 6H8PJSZGXA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Charionis/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Charionis;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Charionis requires local network access to find nearby peers.";
+				INFOPLIST_KEY_NSNearbyInteractionUsageDescription = "Charionis requires Ultra Wideband to measure spatial proximity.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -295,7 +311,10 @@
 				DEVELOPMENT_TEAM = 6H8PJSZGXA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Charionis/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Charionis;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Charionis requires local network access to find nearby peers.";
+				INFOPLIST_KEY_NSNearbyInteractionUsageDescription = "Charionis requires Ultra Wideband to measure spatial proximity.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
