@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct BaseView: View {
+	// TODO: Haptics and sounds
 	@State private var viewModel = BaseViewModel()
 	
 	var body: some View {
@@ -16,6 +17,23 @@ struct BaseView: View {
 				width: -viewModel.cameraOffset.width,
 				height: -viewModel.cameraOffset.height
 			))
+			
+			if viewModel.isAligned {
+				LinearGradient(
+					stops: [
+						.init(color: .black.opacity(0.5), location: 0.0),
+						.init(color: .clear, location: 1.0)
+					],
+					startPoint: .top,
+					endPoint: .bottom
+				)
+				.frame(height: 200)
+				.frame(maxHeight: .infinity, alignment: .top)
+				.ignoresSafeArea(edges: .top)
+				.transition(.move(edge: .top).combined(with: .opacity))
+				.zIndex(1.5)
+				.allowsHitTesting(false)
+			}
 			
 			if viewModel.isDetailPresented {
 				Color.black.opacity(0.45)
@@ -56,9 +74,7 @@ struct BaseView: View {
 					}
 			)
 		}
-		.sensoryFeedback(.impact(weight: .medium, intensity: 0.85), trigger: viewModel.isRised) { _, isRaised in
-			isRaised
-		}
+		.animation(.easeInOut(duration: 1), value: viewModel.isAligned)
 	}
 }
 

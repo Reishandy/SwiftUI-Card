@@ -20,8 +20,8 @@ final class PeerSession: NSObject, NISessionDelegate {
 	var remoteHeading: Double?
 	private(set) var lastLocalHeading: Double = 0.0
 	
-	var alignmentDistanceThreshold: Float = 0.12 // Meters
-	var facingAngleTolerance: Double = 5.0      // Degrees
+	var alignmentDistanceThreshold: Float = 0.2 // Meters
+	var facingAngleTolerance: Double = 10.0      // Degrees
 	
 	var onSpatialUpdate: (@Sendable (String, Float?, Bool, Bool) -> Void)?
 	var onSessionEnded: (@Sendable (String) -> Void)?
@@ -84,10 +84,6 @@ final class PeerSession: NSObject, NISessionDelegate {
 		let isFacing = angleError <= facingAngleTolerance
 		
 		let isAligned = isFacing && (currentDistance <= alignmentDistanceThreshold)
-		
-		if isAligned && !wasAligned {
-			UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-		}
 		wasAligned = isAligned
 		
 		notifySpatialUpdate(isFacing: isFacing, isAligned: isAligned)

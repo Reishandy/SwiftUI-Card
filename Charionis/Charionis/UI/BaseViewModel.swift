@@ -10,7 +10,6 @@ import SwiftUI
 @Observable
 @MainActor
 class BaseViewModel {
-	// TODO: Do the spatial stuff
 	private var manager = SpatialManager()
 	
 	var cardPosition: CGSize = .zero
@@ -31,10 +30,18 @@ class BaseViewModel {
 		)
 	}
 	
+	var isAligned: Bool {
+		manager.isAligned
+	}
+	
 	private var recenterTask: Task<Void, Never>?
 	
 	private let tapDistanceThreshold: CGFloat = 6.0
 	private let flipDistanceThreshold: CGFloat = 200.0
+	
+	init() {
+		manager.start()
+	}
 	
 	func handleDetailDragChanged(value: DragGesture.Value) {
 		if dragStartAngle == nil {

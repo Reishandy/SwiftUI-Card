@@ -8,6 +8,7 @@
 import Foundation
 import Network
 
+// TODO: Revamp data sending receiving
 enum Framing: Sendable {
 	static func send(data: Data, over connection: NWConnection) {
 		var length = UInt32(data.count).bigEndian
