@@ -13,8 +13,6 @@ struct BackgroundView: View {
 	
 	var body: some View {
 		ZStack {
-			Color.white
-			
 			GridShape(spacing: 50, offset: offset)
 				.stroke(Color.blue.opacity(0.25), lineWidth: 1)
 				.ignoresSafeArea()
