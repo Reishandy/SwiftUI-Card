@@ -37,7 +37,7 @@ struct BaseView: View {
 				y: viewModel.isDetailPresented ? 0 : viewModel.cardScreenOffset.height
 			)
 			.zIndex(viewModel.isDetailPresented ? 2 : 0)
-			.scaleEffect(viewModel.isDetailPresented ? 1.2 : 1)
+			.scaleEffect(viewModel.isDetailPresented ? 1.15 : 1)
 			.gesture(
 				DragGesture(minimumDistance: 0)
 					.onChanged { value in
