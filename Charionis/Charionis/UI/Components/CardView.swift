@@ -25,8 +25,10 @@ struct CardView: View, Animatable {
 	
 	var body: some View {
 		ZStack {
-			RoundedRectangle(cornerRadius: 5)
-				.foregroundStyle(.white)
+			Image("Card")
+				.resizable()
+				.clipShape(RoundedRectangle(cornerRadius: 5))
+				.frame(width: 320, height: 190)
 			
 			cardFront
 				.opacity(isBackVisible ? 0 : 1)
