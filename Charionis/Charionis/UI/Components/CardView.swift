@@ -25,24 +25,17 @@ struct CardView: View, Animatable {
 	
 	var body: some View {
 		ZStack {
-			// Front Face
-			ZStack {
-				RoundedRectangle(cornerRadius: 5)
-					.foregroundStyle(.white)
-				cardFront
-			}
-			.opacity(isBackVisible ? 0 : 1)
-			.accessibilityHidden(isBackVisible)
+			RoundedRectangle(cornerRadius: 5)
+				.foregroundStyle(.white)
 			
-			// Back Face
-			ZStack {
-				RoundedRectangle(cornerRadius: 5)
-					.foregroundStyle(.white)
-				cardBack
-			}
-			.rotation3DEffect(.degrees(180), axis: (x: 0, y: -1, z: 0))
-			.opacity(isBackVisible ? 1 : 0)
-			.accessibilityHidden(!isBackVisible)
+			cardFront
+				.opacity(isBackVisible ? 0 : 1)
+				.accessibilityHidden(isBackVisible)
+			
+			cardBack
+				.rotation3DEffect(.degrees(180), axis: (x: 0, y: -1, z: 0))
+				.opacity(isBackVisible ? 1 : 0)
+				.accessibilityHidden(!isBackVisible)
 		}
 		.frame(width: 320, height: 190)
 		.rotation3DEffect(
