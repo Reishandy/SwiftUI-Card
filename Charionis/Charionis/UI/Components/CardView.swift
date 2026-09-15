@@ -28,7 +28,7 @@ struct CardView: View, Animatable {
 			Image("Card")
 				.resizable()
 				.clipShape(RoundedRectangle(cornerRadius: 5))
-				.frame(width: 320, height: 190)
+				
 			
 			cardFront
 				.opacity(isBackVisible ? 0 : 1)
@@ -39,7 +39,12 @@ struct CardView: View, Animatable {
 				.opacity(isBackVisible ? 1 : 0)
 				.accessibilityHidden(!isBackVisible)
 		}
-		.frame(width: 320, height: 190)
+		.containerRelativeFrame(.horizontal) { length, axis in
+			length * 0.8
+		}
+		.containerRelativeFrame(.vertical) { height, axis in
+			height * 0.25
+		}
 		.rotation3DEffect(
 			.degrees(flipAngle),
 			axis: (x: 0, y: -1, z: 0),
