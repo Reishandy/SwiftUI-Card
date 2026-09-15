@@ -63,7 +63,6 @@ struct CardView: View, Animatable {
 			Text("Another Example Text")
 				.font(.body.weight(.light))
 		}
-		.foregroundStyle(.black)
 	}
 	
 	// TODO: Placeholder text replace
@@ -111,7 +110,6 @@ struct CardView: View, Animatable {
 			}
 		}
 		.padding(20)
-		.foregroundStyle(.black)
 	}
 }
 
