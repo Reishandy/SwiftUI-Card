@@ -7,25 +7,58 @@
 
 import SwiftUI
 
-struct CardView: View {
+struct CardView: View, Animatable {
 	var isRised: Bool = false
-	var isFlipped: Bool = false
+	var flipAngle: Double = 0.0
+	var tiltAngle: Double = 0.0
 	
-    var body: some View {
+	var animatableData: Double {
+		get { flipAngle }
+		set { flipAngle = newValue }
+	}
+	
+	private var isBackVisible: Bool {
+		let degrees = flipAngle.truncatingRemainder(dividingBy: 360)
+		let normalized = degrees < 0 ? degrees + 360 : degrees
+		return normalized > 90 && normalized < 270
+	}
+	
+	var body: some View {
 		ZStack {
-			RoundedRectangle(cornerRadius: 5)
-				.foregroundStyle(.white)
-				.shadow(radius: isRised ? 30 : 8, y: isRised ? 20 : 4)
-				
-			if isFlipped {
-				cardBack
-			} else {
+			// Front Face
+			ZStack {
+				RoundedRectangle(cornerRadius: 5)
+					.foregroundStyle(.white)
 				cardFront
 			}
+			.opacity(isBackVisible ? 0 : 1)
+			.accessibilityHidden(isBackVisible)
+			
+			// Back Face
+			ZStack {
+				RoundedRectangle(cornerRadius: 5)
+					.foregroundStyle(.white)
+				cardBack
+			}
+			.rotation3DEffect(.degrees(180), axis: (x: 0, y: -1, z: 0))
+			.opacity(isBackVisible ? 1 : 0)
+			.accessibilityHidden(!isBackVisible)
 		}
 		.frame(width: 320, height: 190)
+		.rotation3DEffect(
+			.degrees(flipAngle),
+			axis: (x: 0, y: -1, z: 0),
+			perspective: 0.35
+		)
+		.rotation3DEffect(
+			.degrees(tiltAngle),
+			axis: (x: 1, y: 0, z: 0),
+			perspective: 0.35
+		)
+		.shadow(radius: isRised ? 30 : 8, y: isRised ? 20 : 4)
 		.animation(.spring(response: 0.3, dampingFraction: 0.7), value: isRised)
-    }
+		.contentShape(Rectangle())
+	}
 	
 	// TODO: Placeholder text replace
 	@ViewBuilder
@@ -37,8 +70,10 @@ struct CardView: View {
 			Text("Another Example Text")
 				.font(.body.weight(.light))
 		}
+		.foregroundStyle(.black)
 	}
 	
+	// TODO: Placeholder text replace
 	@ViewBuilder
 	private var cardBack: some View {
 		VStack {
@@ -53,7 +88,6 @@ struct CardView: View {
 			
 			Spacer()
 			
-			// TODO: Check proportion
 			HStack(alignment: .bottom) {
 				VStack(alignment: .leading) {
 					Text("Street adress, City")
@@ -84,6 +118,7 @@ struct CardView: View {
 			}
 		}
 		.padding(20)
+		.foregroundStyle(.black)
 	}
 }
 
@@ -107,6 +142,6 @@ struct ReversedTextIcon: View {
 #Preview {
 	VStack(spacing: 50) {
 		CardView()
-		CardView(isRised: true, isFlipped: true)
+		CardView(isRised: true, flipAngle: 180)
 	}
 }

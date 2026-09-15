@@ -9,6 +9,8 @@ import SwiftUI
 
 @main
 struct CharionisApp: App {
+	// TODO: Cleanup the code haha...
+	// TODO: Disable dark theme
     var body: some Scene {
         WindowGroup {
             BaseView()
