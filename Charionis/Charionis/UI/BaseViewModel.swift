@@ -15,13 +15,17 @@ class BaseViewModel {
 	var cardPosition: CGSize = .zero
 	var dragTranslation: CGSize = .zero
 	var cameraOffset: CGSize = .zero
-	
 	var isRised: Bool = false
 	var isDetailPresented: Bool = false
-	
 	var flipAngle: Double = 0.0
 	var dragStartAngle: Double? = nil
 	var tiltAngle: Double = 0.0
+	
+	var isSending: Bool = false
+	var transferYOffset: CGFloat = 0.0
+	var cardOpacity: Double = 1.0
+	private var hasTriggeredThresholdHaptic: Bool = false
+	private var sendTask: Task<Void, Never>?
 	
 	var cardScreenOffset: CGSize {
 		CGSize(
@@ -34,13 +38,116 @@ class BaseViewModel {
 		manager.isAligned
 	}
 	
-	private var recenterTask: Task<Void, Never>?
+	/// Returns 0.0...1.0 based on upward displacement towards the top of the screen
+	var sendProgress: Double {
+		guard isAligned, !isDetailPresented, !isSending else { return 0.0 }
+		
+		let upwardDisplacement = -cardScreenOffset.height
+		let startThreshold: CGFloat = 40.0
+		let capThreshold: CGFloat = 200.0
+		
+		guard upwardDisplacement > startThreshold else { return 0.0 }
+		let progress = (upwardDisplacement - startThreshold) / (capThreshold - startThreshold)
+		return min(max(Double(progress), 0.0), 1.0)
+	}
 	
+	var gradientHeight: CGFloat {
+		let baseHeight: CGFloat = 200.0
+		let maxHeight: CGFloat = 300.0
+		return baseHeight + CGFloat(sendProgress) * (maxHeight - baseHeight)
+	}
+	
+	private var recenterTask: Task<Void, Never>?
 	private let tapDistanceThreshold: CGFloat = 6.0
 	private let flipDistanceThreshold: CGFloat = 200.0
 	
 	init() {
 		manager.start()
+	}
+	
+	func handlePositionChange(translation: CGSize) {
+		guard !isSending else { return }
+		recenterTask?.cancel()
+		
+		if !isRised {
+			isRised = true
+		}
+		dragTranslation = translation
+		
+		// TODO: Haptic rethink
+		if sendProgress >= 1.0 && !hasTriggeredThresholdHaptic {
+			UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+			hasTriggeredThresholdHaptic = true
+		} else if sendProgress < 1.0 {
+			hasTriggeredThresholdHaptic = false
+		}
+	}
+	
+	func handlePositionEnded(translation: CGSize) {
+		guard !isSending else { return }
+		isRised = false
+		hasTriggeredThresholdHaptic = false
+		
+		if isAligned && sendProgress >= 0.95 {
+			triggerSendCard()
+			return
+		}
+		
+		dragTranslation = .zero
+		let travelDistance = hypot(translation.width, translation.height)
+		
+		if travelDistance < tapDistanceThreshold {
+			handleCardTap()
+		} else {
+			cardPosition.width += translation.width
+			cardPosition.height += translation.height
+			scheduleRecenter()
+		}
+	}
+	
+	func triggerSendCard() {
+		isSending = true
+		dragTranslation = .zero
+		recenterTask?.cancel()
+		sendTask?.cancel()
+		
+		UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+		
+		withAnimation(.spring(response: 0.7, dampingFraction: 0.75)) {
+			transferYOffset = -UIScreen.main.bounds.height
+			cardOpacity = 0.0
+		}
+		
+		sendTask = Task {
+			// TODO: Call spatial send data to peer here
+			try? await Task.sleep(for: .seconds(2.0))
+			guard !Task.isCancelled else { return }
+			
+			// Silently reposition card
+			var transaction = Transaction()
+			transaction.disablesAnimations = true
+			withTransaction(transaction) {
+				self.cardPosition = .zero
+				self.cameraOffset = .zero
+				self.transferYOffset = UIScreen.main.bounds.height
+				self.cardOpacity = 0.0
+				self.flipAngle = 0.0
+				self.tiltAngle = 0.0
+			}
+			
+			// TODO: Haptic
+			try? await Task.sleep(for: .milliseconds(40))
+			guard !Task.isCancelled else { return }
+			UIImpactFeedbackGenerator(style: .light).impactOccurred()
+			
+			// Bring back card
+			withAnimation(.spring(response: 0.7, dampingFraction: 0.72)) {
+				self.transferYOffset = 0.0
+				self.cardOpacity = 1.0
+			}
+			
+			self.isSending = false
+		}
 	}
 	
 	func handleDetailDragChanged(value: DragGesture.Value) {
@@ -79,32 +186,6 @@ class BaseViewModel {
 			}
 			
 			animateFlip(targetAngle: targetAngle)
-		}
-	}
-	
-	func handlePositionChange(translation: CGSize) {
-		recenterTask?.cancel()
-		
-		if !isRised {
-			isRised = true
-		}
-		
-		dragTranslation = translation
-	}
-	
-	func handlePositionEnded(translation: CGSize) {
-		isRised = false
-		dragTranslation = .zero
-		
-		let travelDistance = hypot(translation.width, translation.height)
-		
-		if travelDistance < tapDistanceThreshold {
-			handleCardTap()
-		} else {
-			cardPosition.width += translation.width
-			cardPosition.height += translation.height
-			
-			scheduleRecenter()
 		}
 	}
 	

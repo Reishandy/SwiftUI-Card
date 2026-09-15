@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct BaseView: View {
-	// TODO: Haptics and sounds
 	@State private var viewModel = BaseViewModel()
 	
 	var body: some View {
@@ -21,18 +20,19 @@ struct BaseView: View {
 			if viewModel.isAligned {
 				LinearGradient(
 					stops: [
-						.init(color: .black.opacity(0.5), location: 0.0),
+						.init(color: .black.opacity(0.5 + viewModel.sendProgress * 0.35), location: 0.0),
 						.init(color: .clear, location: 1.0)
 					],
 					startPoint: .top,
 					endPoint: .bottom
 				)
-				.frame(height: 200)
+				.frame(height: viewModel.gradientHeight)
 				.frame(maxHeight: .infinity, alignment: .top)
 				.ignoresSafeArea(edges: .top)
 				.transition(.move(edge: .top).combined(with: .opacity))
 				.zIndex(1.5)
 				.allowsHitTesting(false)
+				.animation(.interactiveSpring(response: 0.3, dampingFraction: 0.8), value: viewModel.gradientHeight)
 			}
 			
 			if viewModel.isDetailPresented {
@@ -52,10 +52,11 @@ struct BaseView: View {
 			)
 			.offset(
 				x: viewModel.isDetailPresented ? 0 : viewModel.cardScreenOffset.width,
-				y: viewModel.isDetailPresented ? 0 : viewModel.cardScreenOffset.height
+				y: viewModel.isDetailPresented ? 0 : (viewModel.cardScreenOffset.height + viewModel.transferYOffset)
 			)
-			.zIndex(viewModel.isDetailPresented ? 2 : 0)
 			.scaleEffect(viewModel.isDetailPresented ? 1.15 : 1)
+			.opacity(viewModel.cardOpacity)
+			.zIndex(2)
 			.gesture(
 				DragGesture(minimumDistance: 0)
 					.onChanged { value in
@@ -73,6 +74,7 @@ struct BaseView: View {
 						}
 					}
 			)
+			.disabled(viewModel.isSending)
 		}
 		.animation(.easeInOut(duration: 1), value: viewModel.isAligned)
 	}
