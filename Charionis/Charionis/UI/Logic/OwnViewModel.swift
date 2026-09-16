@@ -6,11 +6,15 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @MainActor
 @Observable
 class OwnViewModel {
 	private var manager: SpatialManager
+	private let modelContext: ModelContext
+	
+	var ownCard: SendableCard? = nil
 	
 	// Canvas
 	var cardPosition: CGSize = .zero
@@ -55,11 +59,11 @@ class OwnViewModel {
 	
 	private var sendTask: Task<Void, Never>?
 	
-	// TODO: Move to actual storage
-	var card = SendableCard(primaryText: "Acme", secondaryText: "John Doe", primaryAdress: "Business Street No 12", secondaryAdress: "Quepie, Queland, 1111", phoneNumber: "1234567890", emailAdress: "john.doe@acme.com", webUrl: "acme.com/john")
-	
-	init(manager: SpatialManager) {
+	init(manager: SpatialManager, modelContext: ModelContext) {
 		self.manager = manager
+		self.modelContext = modelContext
+		
+		fetchOwnCard()
 	}
 	
 	func handlePositionChange(translation: CGSize) {
@@ -117,6 +121,8 @@ class OwnViewModel {
 	}
 	
 	private func triggerSendCard() {
+		guard let cardToSend = ownCard else { return }
+		
 		isSending = true
 		dragTranslation = .zero
 		recenterTask?.cancel()
@@ -128,7 +134,7 @@ class OwnViewModel {
 		}
 		
 		sendTask = Task {
-			manager.sendCardToAligned(card)
+			manager.sendCardToAligned(cardToSend)
 			
 			// Let card send animation
 			try? await Task.sleep(for: .seconds(0.7))
@@ -156,5 +162,47 @@ class OwnViewModel {
 			
 			self.isSending = false
 		}
+	}
+	
+	private func fetchOwnCard() {
+		let predicate = #Predicate<Card> { card in
+			card.ownCard == true
+		}
+		
+		var descriptor = FetchDescriptor<Card>(predicate: predicate)
+		descriptor.fetchLimit = 1
+		
+		do {
+			if let card = try modelContext.fetch(descriptor).first {
+				self.ownCard = card.sendableCard
+			} else {
+				self.ownCard = nil
+			}
+		} catch {
+			print("> Failed to fetch own card: \(error.localizedDescription)")
+		}
+	}
+	
+	func saveOwnCard(_ sendable: SendableCard) {
+		let predicate = #Predicate<Card> { card in
+			card.ownCard == true
+		}
+		var descriptor = FetchDescriptor<Card>(predicate: predicate)
+		descriptor.fetchLimit = 1
+		
+		if let existingCard = try? modelContext.fetch(descriptor).first {
+			existingCard.primaryText = sendable.primaryText
+			existingCard.secondaryText = sendable.secondaryText
+			existingCard.primaryAdress = sendable.primaryAdress
+			existingCard.secondaryAdress = sendable.secondaryAdress
+			existingCard.phoneNumber = sendable.phoneNumber
+			existingCard.emailAdress = sendable.emailAdress
+			existingCard.webUrl = sendable.webUrl
+		} else {
+			let newCard = Card(card: sendable, ownCard: true)
+			modelContext.insert(newCard)
+		}
+		
+		self.ownCard = sendable
 	}
 }

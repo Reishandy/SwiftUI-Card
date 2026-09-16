@@ -6,26 +6,17 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct BaseView: View {
-	@State private var baseViewModel = BaseViewModel()
+	@State private var baseViewModel: BaseViewModel
+	
+	init(modelContext: ModelContext) {
+		_baseViewModel = State(wrappedValue: BaseViewModel(modelContext: modelContext))
+	}
 	
 	private var ownModel: OwnViewModel { baseViewModel.ownModel }
 	private var peerModel: PeerViewModel { baseViewModel.peerModel }
-	
-	private var backdropOpacity: Double {
-		let alignedOpacity = 0.5 + ownModel.sendProgress * 0.35
-		return alignedOpacity + (0.45 - alignedOpacity) * peerModel.receivedBackdropProgress
-	}
-	private var gradientHeight: CGFloat {
-		let baseHeight: CGFloat = 200.0
-		let maxHeight: CGFloat = 400.0
-		return baseHeight + CGFloat(ownModel.sendProgress) * (maxHeight - baseHeight)
-	}
-	private var backdropFadeHeight: CGFloat {
-		let fullyReceivedFade: CGFloat = 250.0
-		return gradientHeight + CGFloat(peerModel.receivedBackdropProgress) * (fullyReceivedFade - gradientHeight)
-	}
 	
 	var body: some View {
 		ZStack {
@@ -38,18 +29,18 @@ struct BaseView: View {
 				Color.clear
 					.overlay(alignment: .top) {
 						VStack(spacing: 0) {
-							Color.black.opacity(backdropOpacity)
+							Color.black.opacity(baseViewModel.backdropOpacity)
 								.frame(height: peerModel.backdropSolidHeight)
 							
 							LinearGradient(
 								colors: [
-									.black.opacity(backdropOpacity),
+									.black.opacity(baseViewModel.backdropOpacity),
 									.clear
 								],
 								startPoint: .top,
 								endPoint: .bottom
 							)
-							.frame(height: backdropFadeHeight)
+							.frame(height: baseViewModel.backdropFadeHeight)
 						}
 						.frame(maxWidth: .infinity)
 					}
@@ -75,7 +66,7 @@ struct BaseView: View {
 			}
 			
 			CardView(
-				data: ownModel.card,
+				data: ownModel.ownCard,
 				isRised: ownModel.isRised,
 				flipAngle: ownModel.flip.flipAngle,
 				tiltAngle: ownModel.flip.tiltAngle
@@ -137,5 +128,10 @@ struct BaseView: View {
 }
 
 #Preview {
-	BaseView()
+	let container = try! ModelContainer(
+		for: Card.self,
+		configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+	)
+	
+	BaseView(modelContext: container.mainContext)
 }

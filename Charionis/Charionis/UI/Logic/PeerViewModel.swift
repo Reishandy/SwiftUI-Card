@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @MainActor
 @Observable
 class PeerViewModel {
 	private var manager: SpatialManager
+	private let modelContext: ModelContext
 	
 	// Card receiving
 	var receivedCard: SendableCard? = nil
@@ -29,8 +31,9 @@ class PeerViewModel {
 		CGFloat(receivedBackdropProgress) * DeviceMetrics.screenHeight
 	}
 	
-	init(manager: SpatialManager) {
+	init(manager: SpatialManager, modelContext: ModelContext) {
 		self.manager = manager
+		self.modelContext = modelContext
 		
 		self.manager.onCardReceived = { [weak self] card in
 			if self?.receivedCard == nil {

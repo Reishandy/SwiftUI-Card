@@ -6,12 +6,24 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct CharionisApp: App {
-    var body: some Scene {
-        WindowGroup {
-            BaseView()
-        }
-    }
+	let container: ModelContainer
+	
+	init() {
+		do {
+			container = try ModelContainer(for: Card.self)
+		} catch {
+			fatalError("> Failed to initialize ModelContainer: \(error.localizedDescription)")
+		}
+	}
+	
+	var body: some Scene {
+		WindowGroup {
+			BaseView(modelContext: container.mainContext)
+		}
+		.modelContainer(container)
+	}
 }

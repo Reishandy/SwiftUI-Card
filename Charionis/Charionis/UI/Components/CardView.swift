@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CardView: View, Animatable {
-	let data: SendableCard
+	var data: SendableCard? = nil
 	var isRised: Bool = false
 	var flipAngle: Double = 0.0
 	var tiltAngle: Double = 0.0
@@ -64,10 +64,10 @@ struct CardView: View, Animatable {
 	@ViewBuilder
 	private var cardFront: some View {
 		VStack {
-			Text(data.primaryText.uppercased())
+			Text(data?.primaryText.uppercased() ?? "")
 				.font(.title.bold())
 			
-			Text(data.secondaryText)
+			Text(data?.secondaryText ?? "")
 				.font(.body.weight(.light))
 		}
 	}
@@ -77,10 +77,10 @@ struct CardView: View, Animatable {
 	private var cardBack: some View {
 		VStack {
 			VStack(alignment: .leading) {
-				Text(data.primaryText.uppercased())
+				Text(data?.primaryText.uppercased() ?? "")
 					.font(.title3.bold())
 				
-				Text(data.secondaryText)
+				Text(data?.secondaryText ?? "")
 					.font(.caption.weight(.light))
 			}
 			.frame(maxWidth: .infinity, alignment: .leading)
@@ -89,10 +89,10 @@ struct CardView: View, Animatable {
 			
 			HStack(alignment: .bottom) {
 				VStack(alignment: .leading) {
-					Text(data.primaryAdress)
+					Text(data?.primaryAdress ?? "")
 						.font(.caption2)
 					
-					Text(data.secondaryAdress)
+					Text(data?.secondaryAdress ?? "")
 						.font(.caption2)
 				}
 				
@@ -100,17 +100,17 @@ struct CardView: View, Animatable {
 				
 				VStack {
 					ReversedTextIcon(
-						text: data.phoneNumber,
+						text: data?.phoneNumber ?? "",
 						systemIcon: "phone.fill"
 					)
 					
 					ReversedTextIcon(
-						text: data.emailAdress,
+						text: data?.emailAdress ?? "",
 						systemIcon: "envelope.fill"
 					)
 					
 					ReversedTextIcon(
-						text: data.webUrl,
+						text: data?.webUrl ?? "",
 						systemIcon: "globe.fill"
 					)
 				}
@@ -120,6 +120,7 @@ struct CardView: View, Animatable {
 	}
 }
 
+// TODO: Revamp the icon haha...
 struct ReversedTextIcon: View {
 	let text: String
 	let systemIcon: String
@@ -138,9 +139,18 @@ struct ReversedTextIcon: View {
 }
 
 #Preview {
-	let card = SendableCard(primaryText: "Acme", secondaryText: "John Doe", primaryAdress: "Business Street No 12", secondaryAdress: "Quepie, Queland, 1111", phoneNumber: "1234567890", emailAdress: "john.doe@acme.com", webUrl: "acme.com/john")
+	let card = SendableCard(
+		primaryText: "Acme",
+		secondaryText: "John Doe",
+		primaryAdress: "Business Street No 12",
+		secondaryAdress: "Quepie, Queland, 1111",
+		phoneNumber: "1234567890",
+		emailAdress: "john.doe@acme.com",
+		webUrl: "acme.com/john"
+	)
 	
 	VStack(spacing: 50) {
+		CardView()
 		CardView(data: card)
 		CardView(data: card, isRised: true, flipAngle: 180)
 	}
