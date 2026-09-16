@@ -7,12 +7,22 @@
 
 import Foundation
 
-struct SendableCard: Codable, Sendable {
-	let primaryText: String
-	let secondaryText: String
-	let primaryAdress: String
-	let secondaryAdress: String
-	let phoneNumber: String
-	let emailAdress: String
-	let webUrl: String
+struct SendableCard: Codable, Sendable, Equatable {
+	var primaryText: String
+	var secondaryText: String
+	var primaryAddress: String
+	var secondaryAddress: String
+	var phoneNumber: String
+	var emailAddress: String
+	var webUrl: String
+	
+	static let empty = SendableCard(
+		primaryText: "",
+		secondaryText: "",
+		primaryAddress: "",
+		secondaryAddress: "",
+		phoneNumber: "",
+		emailAddress: "",
+		webUrl: ""
+	)
 }

@@ -8,10 +8,25 @@
 import SwiftUI
 
 struct CardView: View, Animatable {
-	var data: SendableCard? = nil
+	@Binding var data: SendableCard
 	var isRised: Bool = false
+	var isEditMode: Bool = false
 	var flipAngle: Double = 0.0
 	var tiltAngle: Double = 0.0
+	
+	init(
+		data: Binding<SendableCard>,
+		isRised: Bool = false,
+		isEditMode: Bool = false,
+		flipAngle: Double = 0.0,
+		tiltAngle: Double = 0.0
+	) {
+		self._data = data
+		self.isRised = isRised
+		self.isEditMode = isEditMode
+		self.flipAngle = flipAngle
+		self.tiltAngle = tiltAngle
+	}
 	
 	var animatableData: Double {
 		get { flipAngle }
@@ -30,7 +45,6 @@ struct CardView: View, Animatable {
 				.resizable()
 				.clipShape(RoundedRectangle(cornerRadius: 5))
 				
-			
 			cardFront
 				.opacity(isBackVisible ? 0 : 1)
 				.accessibilityHidden(isBackVisible)
@@ -64,24 +78,38 @@ struct CardView: View, Animatable {
 	@ViewBuilder
 	private var cardFront: some View {
 		VStack {
-			Text(data?.primaryText.uppercased() ?? "")
+			Text(data.primaryText.uppercased())
 				.font(.title.bold())
 			
-			Text(data?.secondaryText ?? "")
+			Text(data.secondaryText)
 				.font(.body.weight(.light))
 		}
 	}
 	
-	// TODO: Placeholder text replace
 	@ViewBuilder
 	private var cardBack: some View {
 		VStack {
 			VStack(alignment: .leading) {
-				Text(data?.primaryText.uppercased() ?? "")
-					.font(.title3.bold())
+				CardField(
+					placeholder: "Company",
+					text: $data.primaryText,
+					isEditMode: isEditMode,
+					editFont: .title3.bold(),
+					displayFont: .title3.bold(),
+					fixedHeight: 20,
+					verticalPadding: 8,
+					uppercased: true
+				)
 				
-				Text(data?.secondaryText ?? "")
-					.font(.caption.weight(.light))
+				CardField(
+					placeholder: "Name",
+					text: $data.secondaryText,
+					isEditMode: isEditMode,
+					editFont: .caption.weight(.light),
+					displayFont: .caption.weight(.light),
+					fixedHeight: 14,
+					verticalPadding: 4
+				)
 			}
 			.frame(maxWidth: .infinity, alignment: .leading)
 			
@@ -89,30 +117,65 @@ struct CardView: View, Animatable {
 			
 			HStack(alignment: .bottom) {
 				VStack(alignment: .leading) {
-					Text(data?.primaryAdress ?? "")
-						.font(.caption2)
+					CardField(
+						placeholder: "Address 1",
+						text: $data.primaryAddress,
+						isEditMode: isEditMode,
+						editFont: .caption2,
+						displayFont: .caption2,
+						stretchToFill: true
+					)
 					
-					Text(data?.secondaryAdress ?? "")
-						.font(.caption2)
+					CardField(
+						placeholder: "Address 2",
+						text: $data.secondaryAddress,
+						isEditMode: isEditMode,
+						editFont: .caption2,
+						displayFont: .caption2,
+						stretchToFill: true
+					)
 				}
+				.frame(maxWidth: 140)
 				
 				Spacer()
 				
-				VStack {
-					ReversedTextIcon(
-						text: data?.phoneNumber ?? "",
-						systemIcon: "phone.fill"
-					)
+				HStack {
+					VStack(alignment: .trailing, spacing: 4) {
+						CardField(
+							placeholder: "Phone",
+							text: $data.phoneNumber,
+							isEditMode: isEditMode,
+							editFont: .caption2,
+							displayFont: .caption.weight(.semibold)
+						)
+						
+						CardField(
+							placeholder: "Email",
+							text: $data.emailAddress,
+							isEditMode: isEditMode,
+							editFont: .caption2,
+							displayFont: .caption.weight(.semibold)
+						)
+						
+						CardField(
+							placeholder: "Website",
+							text: $data.webUrl,
+							isEditMode: isEditMode,
+							editFont: .caption2,
+							displayFont: .caption.weight(.semibold)
+						)
+					}
 					
-					ReversedTextIcon(
-						text: data?.emailAdress ?? "",
-						systemIcon: "envelope.fill"
-					)
-					
-					ReversedTextIcon(
-						text: data?.webUrl ?? "",
-						systemIcon: "globe.fill"
-					)
+					VStack(spacing: isEditMode ? 14 : 4) {
+						Image(systemName: "phone.fill")
+							.font(.caption2.weight(.semibold))
+						
+						Image(systemName: "envelope.fill")
+							.font(.caption2.weight(.semibold))
+						
+						Image(systemName: "globe.fill")
+							.font(.caption2.weight(.semibold))
+					}
 				}
 			}
 		}
@@ -120,20 +183,42 @@ struct CardView: View, Animatable {
 	}
 }
 
-// TODO: Revamp the icon haha...
-struct ReversedTextIcon: View {
-	let text: String
-	let systemIcon: String
+struct CardField: View {
+	let placeholder: String
+	@Binding var text: String
+	var isEditMode: Bool
+	var editFont: Font
+	var displayFont: Font
+	var fixedHeight: CGFloat = 14
+	var verticalPadding: CGFloat = 2
+	var horizontalPadding: CGFloat = 8
+	var uppercased: Bool = false
+	var alignment: Alignment = .leading
+	var stretchToFill: Bool = false
+	
+	private var textAlignment: TextAlignment {
+		switch alignment {
+		case .trailing: return .trailing
+		case .center: return .center
+		default: return .leading
+		}
+	}
 	
 	var body: some View {
-		HStack {
-			Spacer()
-			
-			Text(text)
-				.font(.caption2.weight(.semibold))
-			
-			Image(systemName: systemIcon)
-				.font(.caption2.weight(.semibold))
+		if isEditMode {
+			TextField(placeholder, text: $text)
+				.font(editFont)
+				.frame(height: fixedHeight)
+				.padding(.vertical, verticalPadding)
+				.padding(.horizontal, horizontalPadding)
+				.border(Color.black, width: 1)
+		} else {
+			Text(uppercased ? text.uppercased() : text)
+				.font(displayFont)
+				.multilineTextAlignment(textAlignment)
+				.frame(maxWidth: stretchToFill ? .infinity : nil, alignment: alignment)
+				.lineLimit(1)
+				.truncationMode(.middle)
 		}
 	}
 }
@@ -142,16 +227,16 @@ struct ReversedTextIcon: View {
 	let card = SendableCard(
 		primaryText: "Acme",
 		secondaryText: "John Doe",
-		primaryAdress: "Business Street No 12",
-		secondaryAdress: "Quepie, Queland, 1111",
+		primaryAddress: "Business Street No 12",
+		secondaryAddress: "Quepie, Queland, 1111",
 		phoneNumber: "1234567890",
-		emailAdress: "john.doe@acme.com",
+		emailAddress: "john.doe@acme.com",
 		webUrl: "acme.com/john"
 	)
 	
 	VStack(spacing: 50) {
-		CardView()
-		CardView(data: card)
-		CardView(data: card, isRised: true, flipAngle: 180)
+		CardView(data: .constant(SendableCard.empty), isEditMode: true, flipAngle: 180)
+		CardView(data: .constant(card))
+		CardView(data: .constant(card), isRised: true, flipAngle: 180)
 	}
 }

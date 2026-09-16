@@ -15,10 +15,10 @@ class Card {
 	
 	var primaryText: String
 	var secondaryText: String
-	var primaryAdress: String
-	var secondaryAdress: String
+	var primaryAddress: String
+	var secondaryAddress: String
 	var phoneNumber: String
-	var emailAdress: String
+	var emailAddress: String
 	var webUrl: String
 	
 	init(card: SendableCard, ownCard: Bool = false) {
@@ -27,10 +27,10 @@ class Card {
 		
 		self.primaryText = card.primaryText
 		self.secondaryText = card.secondaryText
-		self.primaryAdress = card.primaryAdress
-		self.secondaryAdress = card.secondaryAdress
+		self.primaryAddress = card.primaryAddress
+		self.secondaryAddress = card.secondaryAddress
 		self.phoneNumber = card.phoneNumber
-		self.emailAdress = card.emailAdress
+		self.emailAddress = card.emailAddress
 		self.webUrl = card.webUrl
 	}
 	
@@ -38,10 +38,10 @@ class Card {
 		return SendableCard(
 			primaryText: self.primaryText,
 			secondaryText: self.secondaryText,
-			primaryAdress: self.primaryAdress,
-			secondaryAdress: self.secondaryAdress,
+			primaryAddress: self.primaryAddress,
+			secondaryAddress: self.secondaryAddress,
 			phoneNumber: self.phoneNumber,
-			emailAdress: self.emailAdress,
+			emailAddress: self.emailAddress,
 			webUrl: self.webUrl
 		)
 	}

@@ -14,7 +14,7 @@ class OwnViewModel {
 	private var manager: SpatialManager
 	private let modelContext: ModelContext
 	
-	var ownCard: SendableCard? = nil
+	var ownCard: SendableCard = SendableCard.empty
 	
 	// Canvas
 	var cardPosition: CGSize = .zero
@@ -33,7 +33,18 @@ class OwnViewModel {
 	
 	// Card manipulation
 	var isDetailPresented: Bool = false
+	var isEditMode: Bool = false
 	let flip = FlipCardController()
+	
+	var isCardValid: Bool {
+		return !ownCard.primaryText.isEmpty
+		&& !ownCard.secondaryText.isEmpty
+		&& !ownCard.primaryAddress.isEmpty
+		&& !ownCard.secondaryAddress.isEmpty
+		&& !ownCard.phoneNumber.isEmpty
+		&& !ownCard.emailAddress.isEmpty
+		&& !ownCard.webUrl.isEmpty
+	}
 	
 	// Card sending
 	var isSending: Bool = false
@@ -64,6 +75,10 @@ class OwnViewModel {
 		self.modelContext = modelContext
 		
 		fetchOwnCard()
+		
+		if ownCard == SendableCard.empty {
+			toggleEditMode()
+		}
 	}
 	
 	func handlePositionChange(translation: CGSize) {
@@ -108,6 +123,22 @@ class OwnViewModel {
 		scheduleRecenter()
 	}
 	
+	func toggleEditMode() {
+		if isEditMode {
+			guard isCardValid else { return }
+			saveOwnCard(ownCard)
+			
+			isEditMode = false
+			dismissDetail()
+		} else {
+			withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
+				isDetailPresented = true
+				isEditMode = true
+				flip.flipAngle = 180.0
+			}
+		}
+	}
+	
 	private func scheduleRecenter() {
 		recenterTask?.cancel()
 		recenterTask = Task {
@@ -121,8 +152,6 @@ class OwnViewModel {
 	}
 	
 	private func triggerSendCard() {
-		guard let cardToSend = ownCard else { return }
-		
 		isSending = true
 		dragTranslation = .zero
 		recenterTask?.cancel()
@@ -134,7 +163,7 @@ class OwnViewModel {
 		}
 		
 		sendTask = Task {
-			manager.sendCardToAligned(cardToSend)
+			manager.sendCardToAligned(ownCard)
 			
 			// Let card send animation
 			try? await Task.sleep(for: .seconds(0.7))
@@ -176,7 +205,7 @@ class OwnViewModel {
 			if let card = try modelContext.fetch(descriptor).first {
 				self.ownCard = card.sendableCard
 			} else {
-				self.ownCard = nil
+				self.ownCard = SendableCard.empty
 			}
 		} catch {
 			print("> Failed to fetch own card: \(error.localizedDescription)")
@@ -193,10 +222,10 @@ class OwnViewModel {
 		if let existingCard = try? modelContext.fetch(descriptor).first {
 			existingCard.primaryText = sendable.primaryText
 			existingCard.secondaryText = sendable.secondaryText
-			existingCard.primaryAdress = sendable.primaryAdress
-			existingCard.secondaryAdress = sendable.secondaryAdress
+			existingCard.primaryAddress = sendable.primaryAddress
+			existingCard.secondaryAddress = sendable.secondaryAddress
 			existingCard.phoneNumber = sendable.phoneNumber
-			existingCard.emailAdress = sendable.emailAdress
+			existingCard.emailAddress = sendable.emailAddress
 			existingCard.webUrl = sendable.webUrl
 		} else {
 			let newCard = Card(card: sendable, ownCard: true)
