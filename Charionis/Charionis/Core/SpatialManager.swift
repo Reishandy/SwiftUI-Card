@@ -7,7 +7,6 @@
 
 import SwiftUI
 import Network
-import NearbyInteraction
 
 @Observable
 @MainActor
@@ -24,7 +23,6 @@ final class SpatialManager {
 		alignedPeer != nil
 	}
 	
-	/// Returns the currently aligned peer, or nil
 	var alignedPeer: TrackedPeer? {
 		trackedPeers.values.first(where: { $0.isAligned })
 	}
