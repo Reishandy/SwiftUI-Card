@@ -166,7 +166,7 @@ struct CardView: View, Animatable {
 						)
 					}
 					
-					VStack(spacing: isEditMode ? 14 : 4) {
+					VStack(spacing: isEditMode ? 10 : 4) {
 						Image(systemName: "phone.fill")
 							.font(.caption2.weight(.semibold))
 						
