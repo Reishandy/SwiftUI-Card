@@ -134,7 +134,6 @@ final class SpatialManager {
 				}
 				
 				peerSession.startRanging(with: remoteHandshake.discoveryToken)
-				
 			} catch {
 				connection.cancel()
 			}

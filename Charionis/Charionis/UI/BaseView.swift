@@ -46,6 +46,7 @@ struct BaseView: View {
 			}
 			
 			CardView(
+				data: viewModel.card,
 				isRised: viewModel.isRised,
 				flipAngle: viewModel.flipAngle,
 				tiltAngle: viewModel.tiltAngle

@@ -10,6 +10,7 @@ import SwiftUI
 @Observable
 @MainActor
 class BaseViewModel {
+	// TODO: Ask permission all at once
 	private var manager = SpatialManager()
 	
 	var cardPosition: CGSize = .zero
@@ -43,8 +44,8 @@ class BaseViewModel {
 		guard isAligned, !isDetailPresented, !isSending else { return 0.0 }
 		
 		let upwardDisplacement = -cardScreenOffset.height
-		let startThreshold: CGFloat = 40.0
-		let capThreshold: CGFloat = 200.0
+		let startThreshold: CGFloat = 30.0
+		let capThreshold: CGFloat = 150.0
 		
 		guard upwardDisplacement > startThreshold else { return 0.0 }
 		let progress = (upwardDisplacement - startThreshold) / (capThreshold - startThreshold)
@@ -53,9 +54,20 @@ class BaseViewModel {
 	
 	var gradientHeight: CGFloat {
 		let baseHeight: CGFloat = 200.0
-		let maxHeight: CGFloat = 300.0
+		let maxHeight: CGFloat = 400.0
 		return baseHeight + CGFloat(sendProgress) * (maxHeight - baseHeight)
 	}
+	
+	private var screenHeight: CGFloat {
+		UIApplication.shared.connectedScenes
+			.compactMap { $0 as? UIWindowScene }
+			.flatMap { $0.windows }
+			.first(where: \.isKeyWindow)?
+			.bounds.height ?? 852.0 // Fallback to standard device height
+	}
+	
+	// TODO: Move to actual storage
+	var card = SendableCard(primaryText: "Acme", secondaryText: "John Doe", primaryAdress: "Business Street No 12", secondaryAdress: "Quepie, Queland, 1111", phoneNumber: "1234567890", emailAdress: "john.doe@acme.com", webUrl: "acme.com/john")
 	
 	private var recenterTask: Task<Void, Never>?
 	private let tapDistanceThreshold: CGFloat = 6.0
@@ -64,6 +76,8 @@ class BaseViewModel {
 	init() {
 		manager.start()
 	}
+	
+	// TODO: Deinit
 	
 	func handlePositionChange(translation: CGSize) {
 		guard !isSending else { return }
@@ -88,7 +102,7 @@ class BaseViewModel {
 		isRised = false
 		hasTriggeredThresholdHaptic = false
 		
-		if isAligned && sendProgress >= 0.95 {
+		if isAligned && sendProgress >= 0.70 {
 			triggerSendCard()
 			return
 		}
@@ -114,7 +128,7 @@ class BaseViewModel {
 		UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
 		
 		withAnimation(.spring(response: 0.7, dampingFraction: 0.75)) {
-			transferYOffset = -UIScreen.main.bounds.height
+			transferYOffset = -screenHeight
 			cardOpacity = 0.0
 		}
 		
@@ -129,7 +143,7 @@ class BaseViewModel {
 			withTransaction(transaction) {
 				self.cardPosition = .zero
 				self.cameraOffset = .zero
-				self.transferYOffset = UIScreen.main.bounds.height
+				self.transferYOffset = screenHeight
 				self.cardOpacity = 0.0
 				self.flipAngle = 0.0
 				self.tiltAngle = 0.0
