@@ -29,6 +29,8 @@ final class SpatialManager {
 		trackedPeers.values.first(where: { $0.isAligned })
 	}
 	
+	var onCardReceived: (@MainActor @Sendable (SendableCard) -> Void)?
+	
 	private let networkService = PeerNetworkService()
 	private let motionManager = MotionManager()
 	private var activeSessions: [String: PeerSession] = [:]
@@ -63,11 +65,10 @@ final class SpatialManager {
 		trackedPeers.removeAll()
 	}
 	
-	/// Send data to the currently aligned peer
-	func sendToAligned(data: Data) {
-		guard let peer = alignedPeer else { return }
-		// TODO: Send data over connection to peer.id
-		_ = peer
+	func sendCardToAligned(_ card: SendableCard) {
+		guard let peer = alignedPeer,
+			  let session = activeSessions[peer.id] else { return }
+		session.sendCard(card)
 	}
 	
 	private func broadcastHeading() {
@@ -134,6 +135,12 @@ final class SpatialManager {
 				}
 				
 				peerSession.startRanging(with: remoteHandshake.discoveryToken)
+				
+				peerSession.onCardReceived = { [weak self] card in
+					MainActor.assumeIsolated {
+						self?.onCardReceived?(card)
+					}
+				}
 			} catch {
 				connection.cancel()
 			}

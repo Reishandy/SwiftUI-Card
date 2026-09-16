@@ -17,22 +17,34 @@ struct BaseView: View {
 				height: -viewModel.cameraOffset.height
 			))
 			
-			if viewModel.isAligned {
-				LinearGradient(
-					stops: [
-						.init(color: .black.opacity(0.5 + viewModel.sendProgress * 0.35), location: 0.0),
-						.init(color: .clear, location: 1.0)
-					],
-					startPoint: .top,
-					endPoint: .bottom
-				)
-				.frame(height: viewModel.gradientHeight)
-				.frame(maxHeight: .infinity, alignment: .top)
-				.ignoresSafeArea(edges: .top)
-				.transition(.move(edge: .top).combined(with: .opacity))
-				.zIndex(1.5)
-				.allowsHitTesting(false)
-				.animation(.interactiveSpring(response: 0.3, dampingFraction: 0.8), value: viewModel.gradientHeight)
+			if viewModel.isAligned || viewModel.receivedCard != nil {
+				Color.clear
+					.overlay(alignment: .top) {
+						VStack(spacing: 0) {
+							Color.black.opacity(viewModel.backdropOpacity)
+								.frame(height: viewModel.backdropSolidHeight)
+							
+							LinearGradient(
+								colors: [
+									.black.opacity(viewModel.backdropOpacity),
+									.clear
+								],
+								startPoint: .top,
+								endPoint: .bottom
+							)
+							.frame(height: viewModel.backdropFadeHeight)
+						}
+						.frame(maxWidth: .infinity)
+					}
+					.contentShape(Rectangle())
+					.clipped()
+					.ignoresSafeArea()
+					.transition(.move(edge: .top).combined(with: .opacity))
+					.zIndex(2.5)
+					.allowsHitTesting(viewModel.receivedCard != nil)
+					.onTapGesture {
+						viewModel.dismissReceivedCard()
+					}
 			}
 			
 			if viewModel.isDetailPresented {
@@ -76,7 +88,31 @@ struct BaseView: View {
 					}
 			)
 			.disabled(viewModel.isSending)
+			
+			if let receivedCard = viewModel.receivedCard {
+				CardView(
+					data: receivedCard,
+					isRised: true,
+					flipAngle: viewModel.receivedCardFlipAngle,
+					tiltAngle: viewModel.receivedCardTiltAngle
+				)
+				.rotationEffect(.degrees(viewModel.receivedCardRotationAngle))
+				.offset(y: viewModel.receivedCardYOffset)
+				.scaleEffect(viewModel.receivedCardScale)
+				.zIndex(3)
+				.gesture(
+					DragGesture(minimumDistance: 0)
+						.onChanged { value in
+							viewModel.handleReceivedCardDragChanged(value: value)
+						}
+						.onEnded { value in
+							viewModel.handleReceivedCardDragEnded(value: value)
+						}
+				)
+			}
 		}
+		.frame(maxWidth: .infinity, maxHeight: .infinity)
+		.ignoresSafeArea()
 		.animation(.easeInOut(duration: 1), value: viewModel.isAligned)
 	}
 }

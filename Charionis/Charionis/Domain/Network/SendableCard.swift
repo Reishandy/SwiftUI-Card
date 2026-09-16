@@ -5,7 +5,9 @@
 //  Created by Muhammad Akbar Reishandy on 16/09/26.
 //
 
-struct SendableCard: Sendable {
+import Foundation
+
+struct SendableCard: Codable, Sendable {
 	let primaryText: String
 	let secondaryText: String
 	let primaryAdress: String
