@@ -115,9 +115,9 @@ struct BaseView: View {
 						flipAngle: peerModel.flip.flipAngle,
 						tiltAngle: peerModel.flip.tiltAngle
 					)
+					.scaleEffect(peerModel.receivedCardScale)
 					.rotationEffect(.degrees(peerModel.receivedCardRotationAngle))
 					.offset(y: peerModel.receivedCardYOffset)
-					.scaleEffect(peerModel.receivedCardScale)
 					.zIndex(4)
 					.gesture(
 						DragGesture(minimumDistance: 0)

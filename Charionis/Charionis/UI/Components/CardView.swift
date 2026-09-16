@@ -44,6 +44,7 @@ struct CardView: View, Animatable {
 			Image("Card")
 				.resizable()
 				.clipShape(RoundedRectangle(cornerRadius: 5))
+				.shadow(radius: isRised ? 30 : 8, y: isRised ? 20 : 4)
 				
 			cardFront
 				.opacity(isBackVisible ? 0 : 1)
@@ -70,7 +71,6 @@ struct CardView: View, Animatable {
 			axis: (x: 1, y: 0, z: 0),
 			perspective: 0.35
 		)
-		.shadow(radius: isRised ? 30 : 8, y: isRised ? 20 : 4)
 		.animation(.spring(response: 0.3, dampingFraction: 0.7), value: isRised)
 		.contentShape(Rectangle())
 	}
