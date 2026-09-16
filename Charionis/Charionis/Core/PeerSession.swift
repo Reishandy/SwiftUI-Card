@@ -25,6 +25,7 @@ final class PeerSession: NSObject, NISessionDelegate {
 	
 	var onSpatialUpdate: (@Sendable (String, Float?, Bool, Bool) -> Void)?
 	var onSessionEnded: (@Sendable (String) -> Void)?
+	var onCardReceived: (@Sendable (SendableCard) -> Void)?
 	
 	private var isListening = false
 	private var wasAligned = false
@@ -69,6 +70,11 @@ final class PeerSession: NSObject, NISessionDelegate {
 		Framing.send(data: data, over: connection)
 	}
 	
+	func sendCard(_ card: SendableCard) {
+		guard let data = try? JSONEncoder().encode(card) else { return }
+		Framing.send(data: data, over: connection)
+	}
+	
 	func evaluateAlignment(localHeading: Double) {
 		self.lastLocalHeading = localHeading
 		
@@ -102,11 +108,14 @@ final class PeerSession: NSObject, NISessionDelegate {
 				guard let self else { break }
 				do {
 					let data = try await Framing.receive(from: self.connection)
-					guard data.count == MemoryLayout<Double>.size else { continue }
-					let heading = data.withUnsafeBytes { $0.load(as: Double.self) }
 					
-					self.remoteHeading = heading
-					self.evaluateAlignment(localHeading: self.lastLocalHeading)
+					if data.count == MemoryLayout<Double>.size {
+						let heading = data.withUnsafeBytes { $0.load(as: Double.self) }
+						self.remoteHeading = heading
+						self.evaluateAlignment(localHeading: self.lastLocalHeading)
+					} else if let card = try? JSONDecoder().decode(SendableCard.self, from: data) {
+						self.onCardReceived?(card)
+					}
 				} catch {
 					break
 				}

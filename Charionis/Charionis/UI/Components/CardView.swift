@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct CardView: View, Animatable {
+	let data: SendableCard
 	var isRised: Bool = false
 	var flipAngle: Double = 0.0
 	var tiltAngle: Double = 0.0
@@ -60,14 +61,13 @@ struct CardView: View, Animatable {
 		.contentShape(Rectangle())
 	}
 	
-	// TODO: Placeholder text replace
 	@ViewBuilder
 	private var cardFront: some View {
 		VStack {
-			Text("EXAMPLE TEXT")
+			Text(data.primaryText.uppercased())
 				.font(.title.bold())
 			
-			Text("Another Example Text")
+			Text(data.secondaryText)
 				.font(.body.weight(.light))
 		}
 	}
@@ -77,10 +77,10 @@ struct CardView: View, Animatable {
 	private var cardBack: some View {
 		VStack {
 			VStack(alignment: .leading) {
-				Text("EXAMPLE TEXT")
+				Text(data.primaryText.uppercased())
 					.font(.title3.bold())
 				
-				Text("Another Example Text")
+				Text(data.secondaryText)
 					.font(.caption.weight(.light))
 			}
 			.frame(maxWidth: .infinity, alignment: .leading)
@@ -89,10 +89,10 @@ struct CardView: View, Animatable {
 			
 			HStack(alignment: .bottom) {
 				VStack(alignment: .leading) {
-					Text("Street adress, City")
+					Text(data.primaryAdress)
 						.font(.caption2)
 					
-					Text("State, ZIP, Country")
+					Text(data.secondaryAdress)
 						.font(.caption2)
 				}
 				
@@ -100,17 +100,17 @@ struct CardView: View, Animatable {
 				
 				VStack {
 					ReversedTextIcon(
-						text: "+621234567890",
+						text: data.phoneNumber,
 						systemIcon: "phone.fill"
 					)
 					
 					ReversedTextIcon(
-						text: "john.doe@acme.com",
+						text: data.emailAdress,
 						systemIcon: "envelope.fill"
 					)
 					
 					ReversedTextIcon(
-						text: "acme.com",
+						text: data.webUrl,
 						systemIcon: "globe.fill"
 					)
 				}
@@ -138,8 +138,10 @@ struct ReversedTextIcon: View {
 }
 
 #Preview {
+	let card = SendableCard(primaryText: "Acme", secondaryText: "John Doe", primaryAdress: "Business Street No 12", secondaryAdress: "Quepie, Queland, 1111", phoneNumber: "1234567890", emailAdress: "john.doe@acme.com", webUrl: "acme.com/john")
+	
 	VStack(spacing: 50) {
-		CardView()
-		CardView(isRised: true, flipAngle: 180)
+		CardView(data: card)
+		CardView(data: card, isRised: true, flipAngle: 180)
 	}
 }
