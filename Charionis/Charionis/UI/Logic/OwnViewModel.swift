@@ -6,11 +6,15 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @MainActor
 @Observable
 class OwnViewModel {
 	private var manager: SpatialManager
+	private let modelContext: ModelContext
+	
+	var ownCard: SendableCard = SendableCard.empty
 	
 	// Canvas
 	var cardPosition: CGSize = .zero
@@ -29,7 +33,18 @@ class OwnViewModel {
 	
 	// Card manipulation
 	var isDetailPresented: Bool = false
+	var isEditMode: Bool = false
 	let flip = FlipCardController()
+	
+	var isCardValid: Bool {
+		return !ownCard.primaryText.isEmpty
+		&& !ownCard.secondaryText.isEmpty
+		&& !ownCard.primaryAddress.isEmpty
+		&& !ownCard.secondaryAddress.isEmpty
+		&& !ownCard.phoneNumber.isEmpty
+		&& !ownCard.emailAddress.isEmpty
+		&& !ownCard.webUrl.isEmpty
+	}
 	
 	// Card sending
 	var isSending: Bool = false
@@ -55,11 +70,15 @@ class OwnViewModel {
 	
 	private var sendTask: Task<Void, Never>?
 	
-	// TODO: Move to actual storage
-	var card = SendableCard(primaryText: "Acme", secondaryText: "John Doe", primaryAdress: "Business Street No 12", secondaryAdress: "Quepie, Queland, 1111", phoneNumber: "1234567890", emailAdress: "john.doe@acme.com", webUrl: "acme.com/john")
-	
-	init(manager: SpatialManager) {
+	init(manager: SpatialManager, modelContext: ModelContext) {
 		self.manager = manager
+		self.modelContext = modelContext
+		
+		fetchOwnCard()
+		
+		if ownCard == SendableCard.empty {
+			toggleEditMode()
+		}
 	}
 	
 	func handlePositionChange(translation: CGSize) {
@@ -104,6 +123,22 @@ class OwnViewModel {
 		scheduleRecenter()
 	}
 	
+	func toggleEditMode() {
+		if isEditMode {
+			guard isCardValid else { return }
+			saveOwnCard(ownCard)
+			
+			isEditMode = false
+			dismissDetail()
+		} else {
+			withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
+				isDetailPresented = true
+				isEditMode = true
+				flip.flipAngle = 180.0
+			}
+		}
+	}
+	
 	private func scheduleRecenter() {
 		recenterTask?.cancel()
 		recenterTask = Task {
@@ -128,7 +163,7 @@ class OwnViewModel {
 		}
 		
 		sendTask = Task {
-			manager.sendCardToAligned(card)
+			manager.sendCardToAligned(ownCard)
 			
 			// Let card send animation
 			try? await Task.sleep(for: .seconds(0.7))
@@ -156,5 +191,47 @@ class OwnViewModel {
 			
 			self.isSending = false
 		}
+	}
+	
+	private func fetchOwnCard() {
+		let predicate = #Predicate<Card> { card in
+			card.ownCard == true
+		}
+		
+		var descriptor = FetchDescriptor<Card>(predicate: predicate)
+		descriptor.fetchLimit = 1
+		
+		do {
+			if let card = try modelContext.fetch(descriptor).first {
+				self.ownCard = card.sendableCard
+			} else {
+				self.ownCard = SendableCard.empty
+			}
+		} catch {
+			print("> Failed to fetch own card: \(error.localizedDescription)")
+		}
+	}
+	
+	func saveOwnCard(_ sendable: SendableCard) {
+		let predicate = #Predicate<Card> { card in
+			card.ownCard == true
+		}
+		var descriptor = FetchDescriptor<Card>(predicate: predicate)
+		descriptor.fetchLimit = 1
+		
+		if let existingCard = try? modelContext.fetch(descriptor).first {
+			existingCard.primaryText = sendable.primaryText
+			existingCard.secondaryText = sendable.secondaryText
+			existingCard.primaryAddress = sendable.primaryAddress
+			existingCard.secondaryAddress = sendable.secondaryAddress
+			existingCard.phoneNumber = sendable.phoneNumber
+			existingCard.emailAddress = sendable.emailAddress
+			existingCard.webUrl = sendable.webUrl
+		} else {
+			let newCard = Card(card: sendable, ownCard: true)
+			modelContext.insert(newCard)
+		}
+		
+		self.ownCard = sendable
 	}
 }

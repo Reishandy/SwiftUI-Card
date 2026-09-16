@@ -6,136 +6,155 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct BaseView: View {
-	@State private var baseViewModel = BaseViewModel()
+	@State private var baseViewModel: BaseViewModel
+	
+	init(modelContext: ModelContext) {
+		_baseViewModel = State(wrappedValue: BaseViewModel(modelContext: modelContext))
+	}
 	
 	private var ownModel: OwnViewModel { baseViewModel.ownModel }
 	private var peerModel: PeerViewModel { baseViewModel.peerModel }
 	
-	private var backdropOpacity: Double {
-		let alignedOpacity = 0.5 + ownModel.sendProgress * 0.35
-		return alignedOpacity + (0.45 - alignedOpacity) * peerModel.receivedBackdropProgress
-	}
-	private var gradientHeight: CGFloat {
-		let baseHeight: CGFloat = 200.0
-		let maxHeight: CGFloat = 400.0
-		return baseHeight + CGFloat(ownModel.sendProgress) * (maxHeight - baseHeight)
-	}
-	private var backdropFadeHeight: CGFloat {
-		let fullyReceivedFade: CGFloat = 250.0
-		return gradientHeight + CGFloat(peerModel.receivedBackdropProgress) * (fullyReceivedFade - gradientHeight)
-	}
-	
 	var body: some View {
-		ZStack {
-			BackgroundView(offset: CGSize(
-				width: -ownModel.cameraOffset.width,
-				height: -ownModel.cameraOffset.height
-			))
-			
-			if ownModel.isAligned || peerModel.receivedCard != nil {
-				Color.clear
-					.overlay(alignment: .top) {
-						VStack(spacing: 0) {
-							Color.black.opacity(backdropOpacity)
-								.frame(height: peerModel.backdropSolidHeight)
-							
-							LinearGradient(
-								colors: [
-									.black.opacity(backdropOpacity),
-									.clear
-								],
-								startPoint: .top,
-								endPoint: .bottom
-							)
-							.frame(height: backdropFadeHeight)
+		@Bindable var ownModel = ownModel
+		
+		NavigationStack {
+			ZStack {
+				BackgroundView(offset: CGSize(
+					width: -ownModel.cameraOffset.width,
+					height: -ownModel.cameraOffset.height
+				))
+				
+				if ownModel.isAligned || peerModel.receivedCard != nil {
+					Color.clear
+						.overlay(alignment: .top) {
+							VStack(spacing: 0) {
+								Color.black.opacity(baseViewModel.backdropOpacity)
+									.frame(height: peerModel.backdropSolidHeight)
+								
+								LinearGradient(
+									colors: [
+										.black.opacity(baseViewModel.backdropOpacity),
+										.clear
+									],
+									startPoint: .top,
+									endPoint: .bottom
+								)
+								.frame(height: baseViewModel.backdropFadeHeight)
+							}
+							.frame(maxWidth: .infinity)
 						}
-						.frame(maxWidth: .infinity)
-					}
-					.contentShape(Rectangle())
-					.clipped()
-					.ignoresSafeArea()
-					.transition(.move(edge: .top).combined(with: .opacity))
-					.zIndex(peerModel.receivedCard != nil ? 2 : 1)
-					.allowsHitTesting(peerModel.receivedCard != nil)
-					.onTapGesture {
-						peerModel.dismissReceivedCard()
-					}
-			}
-			
-			if ownModel.isDetailPresented {
-				Color.black.opacity(0.45)
-					.ignoresSafeArea()
-					.transition(.opacity)
-					.zIndex(1)
-					.onTapGesture {
-						ownModel.dismissDetail()
-					}
-			}
-			
-			CardView(
-				data: ownModel.card,
-				isRised: ownModel.isRised,
-				flipAngle: ownModel.flip.flipAngle,
-				tiltAngle: ownModel.flip.tiltAngle
-			)
-			.offset(
-				x: ownModel.isDetailPresented ? 0 : ownModel.cardScreenOffset.width,
-				y: ownModel.isDetailPresented ? 0 : (ownModel.cardScreenOffset.height + ownModel.transferYOffset)
-			)
-			.scaleEffect(ownModel.isDetailPresented ? 1.15 : 1)
-			.opacity(ownModel.cardOpacity)
-			.zIndex(2)
-			.gesture(
-				DragGesture(minimumDistance: 0)
-					.onChanged { value in
-						if ownModel.isDetailPresented {
-							ownModel.flip.dragChanged(value)
-						} else {
-							ownModel.handlePositionChange(translation: value.translation)
+						.contentShape(Rectangle())
+						.clipped()
+						.ignoresSafeArea()
+						.transition(.move(edge: .top).combined(with: .opacity))
+						.zIndex(peerModel.receivedCard != nil ? 2 : 1)
+						.allowsHitTesting(peerModel.receivedCard != nil)
+						.onTapGesture {
+							peerModel.dismissReceivedCard()
 						}
-					}
-					.onEnded { value in
-						if ownModel.isDetailPresented {
-							ownModel.flip.dragEnded(value)
-						} else {
-							ownModel.handlePositionEnded(translation: value.translation)
+				}
+				
+				if ownModel.isDetailPresented {
+					Color.black.opacity(0.45)
+						.ignoresSafeArea()
+						.transition(.opacity)
+						.zIndex(1)
+						.onTapGesture {
+							if !ownModel.isEditMode {
+								ownModel.dismissDetail()
+							}
 						}
-					}
-			)
-			.disabled(ownModel.isSending)
-			
-			if let receivedCard = peerModel.receivedCard {
+				}
+				
 				CardView(
-					data: receivedCard,
-					isRised: true,
-					flipAngle: peerModel.flip.flipAngle,
-					tiltAngle: peerModel.flip.tiltAngle
+					data: $ownModel.ownCard,
+					isRised: ownModel.isRised,
+					isEditMode: ownModel.isEditMode,
+					flipAngle: ownModel.flip.flipAngle,
+					tiltAngle: ownModel.flip.tiltAngle
 				)
-				.rotationEffect(.degrees(peerModel.receivedCardRotationAngle))
-				.offset(y: peerModel.receivedCardYOffset)
-				.scaleEffect(peerModel.receivedCardScale)
-				.zIndex(4)
+				.offset(
+					x: ownModel.isDetailPresented ? 0 : ownModel.cardScreenOffset.width,
+					y: ownModel.isDetailPresented ? 0 : (ownModel.cardScreenOffset.height + ownModel.transferYOffset)
+				)
+				.scaleEffect(ownModel.isDetailPresented ? 1.15 : 1)
+				.opacity(ownModel.cardOpacity)
+				.zIndex(2)
 				.gesture(
 					DragGesture(minimumDistance: 0)
 						.onChanged { value in
-							guard peerModel.isReceivedCardInteractive else { return }
-							peerModel.flip.dragChanged(value)
+							if ownModel.isDetailPresented {
+								if !ownModel.isEditMode {
+									ownModel.flip.dragChanged(value)
+								}
+							} else {
+								ownModel.handlePositionChange(translation: value.translation)
+							}
 						}
 						.onEnded { value in
-							guard peerModel.isReceivedCardInteractive else { return }
-							peerModel.flip.dragEnded(value)
+							if ownModel.isDetailPresented {
+								if !ownModel.isEditMode {
+									ownModel.flip.dragEnded(value)
+								}
+							} else {
+								ownModel.handlePositionEnded(translation: value.translation)
+							}
 						}
 				)
+				.disabled(ownModel.isSending)
+				
+				if let receivedCard = peerModel.receivedCard {
+					CardView(
+						data: .constant(receivedCard),
+						isRised: true,
+						flipAngle: peerModel.flip.flipAngle,
+						tiltAngle: peerModel.flip.tiltAngle
+					)
+					.rotationEffect(.degrees(peerModel.receivedCardRotationAngle))
+					.offset(y: peerModel.receivedCardYOffset)
+					.scaleEffect(peerModel.receivedCardScale)
+					.zIndex(4)
+					.gesture(
+						DragGesture(minimumDistance: 0)
+							.onChanged { value in
+								guard peerModel.isReceivedCardInteractive else { return }
+								peerModel.flip.dragChanged(value)
+							}
+							.onEnded { value in
+								guard peerModel.isReceivedCardInteractive else { return }
+								peerModel.flip.dragEnded(value)
+							}
+					)
+				}
 			}
+			.toolbar {
+				if ownModel.isDetailPresented {
+					ToolbarItem(placement: .topBarTrailing) {
+						Button {
+							ownModel.toggleEditMode()
+						} label: {
+							Image(systemName: ownModel.isEditMode ? "checkmark" : "square.and.pencil")
+						}
+						.disabled(!ownModel.isCardValid)
+					}
+				}
+			}
+			.frame(maxWidth: .infinity, maxHeight: .infinity)
+			.ignoresSafeArea()
+			.animation(.easeInOut(duration: 1), value: ownModel.isAligned)
 		}
-		.frame(maxWidth: .infinity, maxHeight: .infinity)
-		.ignoresSafeArea()
-		.animation(.easeInOut(duration: 1), value: ownModel.isAligned)
 	}
 }
 
 #Preview {
-	BaseView()
+	let container = try! ModelContainer(
+		for: Card.self,
+		configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+	)
+	
+	BaseView(modelContext: container.mainContext)
 }
