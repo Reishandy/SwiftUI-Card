@@ -28,7 +28,6 @@ final class PeerSession: NSObject, NISessionDelegate {
 	var onCardReceived: (@Sendable (SendableCard) -> Void)?
 	
 	private var isListening = false
-	private var wasAligned = false
 	
 	init(peerID: String, connection: NWConnection) {
 		self.peerID = peerID
@@ -90,7 +89,6 @@ final class PeerSession: NSObject, NISessionDelegate {
 		let isFacing = angleError <= facingAngleTolerance
 		
 		let isAligned = isFacing && (currentDistance <= alignmentDistanceThreshold)
-		wasAligned = isAligned
 		
 		notifySpatialUpdate(isFacing: isFacing, isAligned: isAligned)
 	}
@@ -129,8 +127,6 @@ final class PeerSession: NSObject, NISessionDelegate {
 		session = nil
 		connection.cancel()
 	}
-	
-	// MARK: - NISessionDelegate
 	
 	nonisolated func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
 		MainActor.assumeIsolated {

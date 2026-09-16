@@ -84,6 +84,7 @@ struct BaseView: View {
 				.scaleEffect(ownModel.isDetailPresented ? 1.15 : 1)
 				.opacity(ownModel.cardOpacity)
 				.zIndex(2)
+				.allowsHitTesting(peerModel.receivedCard == nil)
 				.gesture(
 					DragGesture(minimumDistance: 0)
 						.onChanged { value in
@@ -146,6 +147,11 @@ struct BaseView: View {
 			.frame(maxWidth: .infinity, maxHeight: .infinity)
 			.ignoresSafeArea()
 			.animation(.easeInOut(duration: 1), value: ownModel.isAligned)
+			.onChange(of: peerModel.receivedCard) {
+				Task { @MainActor in
+					ownModel.dismissDetail()
+				}
+			}
 		}
 	}
 }
