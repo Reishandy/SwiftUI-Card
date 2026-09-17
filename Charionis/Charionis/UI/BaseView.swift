@@ -52,7 +52,7 @@ struct BaseView: View {
 							.clipped()
 							.ignoresSafeArea()
 							.transition(.move(edge: .top).combined(with: .opacity))
-							.zIndex(peerModel.receivedCard != nil ? 2 : 1)
+							.zIndex(peerModel.receivedCard != nil ? 3 : 1)
 							.allowsHitTesting(peerModel.receivedCard != nil)
 							.onTapGesture {
 								peerModel.dismissReceivedCard()
@@ -134,6 +134,7 @@ struct BaseView: View {
 					}
 				}
 				.animation(.easeInOut(duration: 1), value: ownModel.isAligned)
+				.sensoryFeedback(.alignment, trigger: ownModel.isAligned)
 			}
 			.toolbar {
 				if ownModel.isDetailPresented {

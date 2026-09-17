@@ -57,6 +57,8 @@ class PeerViewModel {
 			self.receivedBackdropProgress = 0.0
 		}
 		
+		HapticManager.shared.notification(.success)
+		
 		receiveTask = Task {
 			try? await Task.sleep(for: .milliseconds(50))
 			guard !Task.isCancelled else { return }
