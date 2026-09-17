@@ -137,7 +137,7 @@ struct CardView: View, Animatable {
 						textContentType: .streetAddressLine2
 					)
 				}
-				.frame(maxWidth: 120)
+				.frame(maxWidth: 110)
 				
 				Spacer(minLength: 8)
 				
