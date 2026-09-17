@@ -223,8 +223,37 @@ class PeerViewModel {
 	}
 	
 	private func saveReceivedCard(_ sendable: SendableCard) {
-		let newCard = Card(card: sendable, ownCard: false)
-		modelContext.insert(newCard)
-		try? modelContext.save()
+		let pText = sendable.primaryText
+		let sText = sendable.secondaryText
+		let pAddr = sendable.primaryAddress
+		let sAddr = sendable.secondaryAddress
+		let phone = sendable.phoneNumber
+		let email = sendable.emailAddress
+		let web = sendable.webUrl
+		
+		let predicate = #Predicate<Card> { card in
+			card.ownCard == false &&
+			card.primaryText == pText &&
+			card.secondaryText == sText &&
+			card.primaryAddress == pAddr &&
+			card.secondaryAddress == sAddr &&
+			card.phoneNumber == phone &&
+			card.emailAddress == email &&
+			card.webUrl == web
+		}
+		
+		var descriptor = FetchDescriptor<Card>(predicate: predicate)
+		descriptor.fetchLimit = 1
+		
+		do {
+			let isDuplicate = try !modelContext.fetch(descriptor).isEmpty
+			guard !isDuplicate else { return }
+			
+			let newCard = Card(card: sendable, ownCard: false)
+			modelContext.insert(newCard)
+			try modelContext.save()
+		} catch {
+			print("> Failed to validate/save received card: \(error.localizedDescription)")
+		}
 	}
 }

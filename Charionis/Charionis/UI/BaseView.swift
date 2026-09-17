@@ -147,6 +147,13 @@ struct BaseView: View {
 						.zIndex(5)
 						.allowsHitTesting(false)
 					}
+					
+					if baseViewModel.isSavedCardShown {
+						SavedCardsView(
+							isVisible: baseViewModel.areSavedCardsVisible
+						)
+						.zIndex(6)
+					}
 				}
 			}
 			.animation(.easeInOut(duration: 1), value: ownModel.isAligned)
@@ -161,6 +168,14 @@ struct BaseView: View {
 						}
 						.disabled(!ownModel.isCardValid)
 					}
+				} else if peerModel.receivedCard == nil {
+					ToolbarItem(placement: .topBarLeading) {
+						Button {
+							baseViewModel.toggleSavedCards()
+						} label: {
+							Image(systemName: baseViewModel.isSavedCardShown ? "arrow.backward" : "square.grid.2x2.fill")
+						}
+					}
 				}
 			}
 			.frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -168,6 +183,7 @@ struct BaseView: View {
 			.onChange(of: peerModel.receivedCard) {
 				Task { @MainActor in
 					ownModel.dismissDetail()
+					baseViewModel.dismissSavedCards()
 				}
 			}
 		}

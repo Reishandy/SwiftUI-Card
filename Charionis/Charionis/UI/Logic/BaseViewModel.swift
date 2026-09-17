@@ -30,6 +30,10 @@ class BaseViewModel {
 		return gradientHeight + CGFloat(peerModel.receivedBackdropProgress) * (fullyReceivedFade - gradientHeight)
 	}
 	
+	var isSavedCardShown = false
+	var areSavedCardsVisible = false
+	private var savedCardsTask: Task<Void, Never>?
+	
 	// TODO: Ask permission all at once
 	
 	init(modelContext: ModelContext) {
@@ -39,6 +43,39 @@ class BaseViewModel {
 		self.peerModel = PeerViewModel(manager: manager, modelContext: modelContext)
 		
 		manager.start()
+	}
+	
+	func showSavedCards() {
+		savedCardsTask?.cancel()
+		isSavedCardShown = true
+		areSavedCardsVisible = false
+		
+		savedCardsTask = Task { @MainActor in
+			// Yield one tick so the view mounts in its off-screen bottom position
+			try? await Task.sleep(for: .milliseconds(30))
+			guard !Task.isCancelled else { return }
+			areSavedCardsVisible = true
+		}
+	}
+	
+	func dismissSavedCards() {
+		savedCardsTask?.cancel()
+		areSavedCardsVisible = false
+		
+		savedCardsTask = Task { @MainActor in
+			// Wait for cards to fly completely below the viewport before unmounting
+			try? await Task.sleep(for: .milliseconds(420))
+			guard !Task.isCancelled else { return }
+			isSavedCardShown = false
+		}
+	}
+	
+	func toggleSavedCards() {
+		if isSavedCardShown {
+			dismissSavedCards()
+		} else {
+			showSavedCards()
+		}
 	}
 	
 	// TODO: Deinit / stop manager
