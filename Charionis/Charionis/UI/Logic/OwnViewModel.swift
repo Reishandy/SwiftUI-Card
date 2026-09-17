@@ -174,8 +174,6 @@ class OwnViewModel {
 		recenterTask?.cancel()
 		sendTask?.cancel()
 		
-		HapticManager.shared.notification(.success)
-		
 		withAnimation(.spring(response: 0.7, dampingFraction: 0.75)) {
 			transferYOffset = -DeviceMetrics.screenHeight
 			cardOpacity = 0.0
