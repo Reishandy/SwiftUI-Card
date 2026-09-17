@@ -29,6 +29,7 @@ struct BaseView: View {
 				))
 				
 				ZStack {
+					// Backdrop overlay
 					if ownModel.isAligned || peerModel.receivedCard != nil {
 						Color.clear
 							.overlay(alignment: .top) {
@@ -46,19 +47,17 @@ struct BaseView: View {
 									)
 									.frame(height: baseViewModel.backdropFadeHeight)
 								}
-								.frame(maxWidth: .infinity)
 							}
+							.frame(maxWidth: .infinity)
 							.contentShape(Rectangle())
 							.clipped()
 							.ignoresSafeArea()
 							.transition(.move(edge: .top).combined(with: .opacity))
 							.zIndex(peerModel.receivedCard != nil ? 3 : 1)
-							.allowsHitTesting(peerModel.receivedCard != nil)
-							.onTapGesture {
-								peerModel.dismissReceivedCard()
-							}
+							.allowsHitTesting(false)
 					}
 					
+					// Own card backdrop detail
 					if ownModel.isDetailPresented {
 						Color.black.opacity(0.45)
 							.ignoresSafeArea()
@@ -71,6 +70,7 @@ struct BaseView: View {
 							}
 					}
 					
+					// Own Card
 					CardView(
 						data: $ownModel.ownCard,
 						isRised: ownModel.isRised,
@@ -109,6 +109,7 @@ struct BaseView: View {
 					)
 					.disabled(ownModel.isSending)
 					
+					// Received Card
 					if let receivedCard = peerModel.receivedCard {
 						CardView(
 							data: .constant(receivedCard),
@@ -116,26 +117,47 @@ struct BaseView: View {
 							flipAngle: peerModel.flip.flipAngle,
 							tiltAngle: peerModel.flip.tiltAngle
 						)
-						.scaleEffect(peerModel.receivedCardScale)
+						.scaleEffect(peerModel.receivedCardScale * (1.0 - CGFloat(peerModel.dismissProgress) * 0.15))
 						.rotationEffect(.degrees(peerModel.receivedCardRotationAngle))
-						.offset(y: peerModel.receivedCardYOffset)
+						.offset(
+							x: peerModel.cardDragOffset.width,
+							y: peerModel.receivedCardYOffset + peerModel.cardDragOffset.height
+						)
 						.zIndex(4)
 						.gesture(
 							DragGesture(minimumDistance: 0)
 								.onChanged { value in
-									guard peerModel.isReceivedCardInteractive else { return }
-									peerModel.flip.dragChanged(value)
+									peerModel.handleCardDragChanged(value)
 								}
 								.onEnded { value in
-									guard peerModel.isReceivedCardInteractive else { return }
-									peerModel.flip.dragEnded(value)
+									peerModel.handleCardDragEnded(value)
 								}
 						)
 					}
+					
+					// Bottom Peeking Wallet
+					if peerModel.receivedCard != nil {
+						VStack {
+							Spacer()
+							WalletView()
+								.frame(height: peerModel.walletHeight)
+								.offset(y: peerModel.walletYOffset)
+						}
+						.ignoresSafeArea(edges: .bottom)
+						.zIndex(5)
+						.allowsHitTesting(false)
+					}
+					
+					if baseViewModel.isSavedCardShown {
+						SavedCardsView(
+							isVisible: baseViewModel.areSavedCardsVisible
+						)
+						.zIndex(6)
+					}
 				}
-				.animation(.easeInOut(duration: 1), value: ownModel.isAligned)
-				.sensoryFeedback(.alignment, trigger: ownModel.isAligned)
 			}
+			.animation(.easeInOut(duration: 1), value: ownModel.isAligned)
+			.sensoryFeedback(.alignment, trigger: ownModel.isAligned)
 			.toolbar {
 				if ownModel.isDetailPresented {
 					ToolbarItem(placement: .topBarTrailing) {
@@ -146,6 +168,13 @@ struct BaseView: View {
 						}
 						.disabled(!ownModel.isCardValid)
 					}
+				} else if peerModel.receivedCard == nil {
+					ToolbarItem(placement: .topBarLeading) {
+						SavedCardsToolbarButton(
+							isSavedCardShown: $baseViewModel.isSavedCardShown,
+							onToggle: { baseViewModel.toggleSavedCards() }
+						)
+					}
 				}
 			}
 			.frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -153,6 +182,7 @@ struct BaseView: View {
 			.onChange(of: peerModel.receivedCard) {
 				Task { @MainActor in
 					ownModel.dismissDetail()
+					baseViewModel.dismissSavedCards()
 				}
 			}
 		}
