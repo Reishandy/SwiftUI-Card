@@ -115,15 +115,16 @@ struct CardView: View, Animatable {
 			
 			Spacer()
 			
-			HStack(alignment: .bottom) {
-				VStack(alignment: .leading) {
+			HStack(alignment: .bottom, spacing: 8) {
+				VStack(alignment: .leading, spacing: 4) {
 					CardField(
 						placeholder: "Address 1",
 						text: $data.primaryAddress,
 						isEditMode: isEditMode,
 						editFont: .caption2,
 						displayFont: .caption2,
-						stretchToFill: true
+						stretchToFill: true,
+						textContentType: .streetAddressLine1
 					)
 					
 					CardField(
@@ -132,21 +133,25 @@ struct CardView: View, Animatable {
 						isEditMode: isEditMode,
 						editFont: .caption2,
 						displayFont: .caption2,
-						stretchToFill: true
+						stretchToFill: true,
+						textContentType: .streetAddressLine2
 					)
 				}
-				.frame(maxWidth: 140)
+				.frame(maxWidth: 120)
 				
-				Spacer()
+				Spacer(minLength: 8)
 				
-				HStack {
-					VStack(alignment: .trailing, spacing: 4) {
+				HStack(alignment: .center, spacing: 6) {
+					VStack(alignment: .trailing, spacing: isEditMode ? 6 : 4) {
 						CardField(
 							placeholder: "Phone",
 							text: $data.phoneNumber,
 							isEditMode: isEditMode,
 							editFont: .caption2,
-							displayFont: .caption.weight(.semibold)
+							displayFont: .caption.weight(.semibold),
+							alignment: .trailing,
+							keyboardType: .phonePad,
+							textContentType: .telephoneNumber
 						)
 						
 						CardField(
@@ -154,7 +159,11 @@ struct CardView: View, Animatable {
 							text: $data.emailAddress,
 							isEditMode: isEditMode,
 							editFont: .caption2,
-							displayFont: .caption.weight(.semibold)
+							displayFont: .caption.weight(.semibold),
+							alignment: .trailing,
+							keyboardType: .emailAddress,
+							textContentType: .emailAddress,
+							autocapitalization: .never
 						)
 						
 						CardField(
@@ -162,11 +171,16 @@ struct CardView: View, Animatable {
 							text: $data.webUrl,
 							isEditMode: isEditMode,
 							editFont: .caption2,
-							displayFont: .caption.weight(.semibold)
+							displayFont: .caption.weight(.semibold),
+							alignment: .trailing,
+							keyboardType: .URL,
+							textContentType: .URL,
+							autocapitalization: .never
 						)
 					}
+					.frame(minWidth: isEditMode ? 140 : nil)
 					
-					VStack(spacing: isEditMode ? 10 : 4) {
+					VStack(spacing: isEditMode ? 12 : 6) {
 						Image(systemName: "phone.fill")
 							.font(.caption2.weight(.semibold))
 						
@@ -177,6 +191,7 @@ struct CardView: View, Animatable {
 							.font(.caption2.weight(.semibold))
 					}
 				}
+				.frame(maxWidth: .infinity, alignment: .trailing)
 			}
 		}
 		.padding(20)
@@ -195,6 +210,9 @@ struct CardField: View {
 	var uppercased: Bool = false
 	var alignment: Alignment = .leading
 	var stretchToFill: Bool = false
+	var keyboardType: UIKeyboardType = .default
+	var textContentType: UITextContentType? = nil
+	var autocapitalization: TextInputAutocapitalization? = nil
 	
 	private var textAlignment: TextAlignment {
 		switch alignment {
@@ -208,7 +226,11 @@ struct CardField: View {
 		if isEditMode {
 			TextField(placeholder, text: $text)
 				.font(editFont)
+				.keyboardType(keyboardType)
+				.textContentType(textContentType)
+				.textInputAutocapitalization(autocapitalization)
 				.frame(height: fixedHeight)
+				.frame(maxWidth: stretchToFill ? .infinity : nil)
 				.padding(.vertical, verticalPadding)
 				.padding(.horizontal, horizontalPadding)
 				.border(Color.black, width: 1)
