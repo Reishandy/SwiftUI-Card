@@ -20,9 +20,23 @@ final class MotionManager {
 		motion.startDeviceMotionUpdates(using: .xMagneticNorthZVertical, to: .main) { [weak self] data, _ in
 			guard let data, let self else { return }
 			
-			// Sensor fusion yaw -> Compass heading degrees (0...360)
-			let yawDeg = (-data.attitude.yaw * 180.0 / .pi)
-			self.currentHeading = (yawDeg + 360.0).truncatingRemainder(dividingBy: 360.0)
+			let m = data.attitude.rotationMatrix
+			
+			// The top of the phone is the device +Y axis.
+			// In .xMagneticNorthZVertical:
+			// m.m12 = projection onto Reference X (Magnetic North)
+			// m.m22 = projection onto Reference Y (Magnetic West) -> -m.m22 is East
+			let north = m.m12
+			let east = -m.m22
+			
+			// Azimuth in radians clockwise from North
+			let radians = atan2(east, north)
+			var degrees = radians * 180.0 / .pi
+			if degrees < 0 {
+				degrees += 360.0
+			}
+			
+			self.currentHeading = degrees
 		}
 	}
 	
