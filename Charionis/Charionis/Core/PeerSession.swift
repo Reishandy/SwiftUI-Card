@@ -29,6 +29,18 @@ final class PeerSession: NSObject, NISessionDelegate {
 	
 	private var isListening = false
 	
+	var angleError: Double? {
+		guard let remoteHeading else { return nil }
+		let diff = abs(lastLocalHeading - remoteHeading).truncatingRemainder(dividingBy: 360.0)
+		let angularDistance = diff > 180.0 ? 360.0 - diff : diff
+		return abs(180.0 - angularDistance)
+	}
+	
+	var isDistanceWithinThreshold: Bool {
+		guard let currentDistance else { return false }
+		return currentDistance <= alignmentDistanceThreshold
+	}
+	
 	init(peerID: String, connection: NWConnection) {
 		self.peerID = peerID
 		self.connection = connection

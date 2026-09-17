@@ -18,6 +18,8 @@ struct BaseView: View {
 	private var ownModel: OwnViewModel { baseViewModel.ownModel }
 	private var peerModel: PeerViewModel { baseViewModel.peerModel }
 	
+	@State private var isDebugPresented = false
+	
 	var body: some View {
 		@Bindable var ownModel = ownModel
 		
@@ -157,7 +159,7 @@ struct BaseView: View {
 					if peerModel.receivedCard != nil {
 						VStack {
 							Spacer()
-				
+							
 							WalletView()
 								.frame(height: peerModel.walletHeight)
 								.offset(y: peerModel.walletYOffset)
@@ -195,6 +197,17 @@ struct BaseView: View {
 						)
 					}
 				}
+				
+				ToolbarItem(placement: .topBarLeading) {
+					HStack(spacing: 12) {
+						Button {
+							isDebugPresented.toggle()
+						} label: {
+							Image(systemName: "ladybug.fill")
+								.foregroundStyle(ownModel.isAligned ? .green : .secondary)
+						}
+					}
+				}
 			}
 			.frame(maxWidth: .infinity, maxHeight: .infinity)
 			.ignoresSafeArea()
@@ -211,6 +224,12 @@ struct BaseView: View {
 				withAnimation(.spring(response: 0.75, dampingFraction: 0.75)) {
 					ownModel.hasAppeared = true
 				}
+			}
+			.sheet(isPresented: $isDebugPresented) {
+				DebugView(baseViewModel: baseViewModel)
+					.presentationDetents([.medium, .fraction(0.85)])
+					.presentationDragIndicator(.visible)
+					.presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.85)))
 			}
 		}
 	}

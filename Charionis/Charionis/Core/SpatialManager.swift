@@ -29,9 +29,9 @@ final class SpatialManager {
 	
 	var onCardReceived: (@MainActor @Sendable (SendableCard) -> Void)?
 	
-	private let networkService = PeerNetworkService()
-	private let motionManager = MotionManager()
-	private var activeSessions: [String: PeerSession] = [:]
+	let networkService = PeerNetworkService()
+	let motionManager = MotionManager()
+	var activeSessions: [String: PeerSession] = [:]
 	private var headingTimer: Timer?
 	
 	init() {
