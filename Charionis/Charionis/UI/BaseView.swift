@@ -170,11 +170,10 @@ struct BaseView: View {
 					}
 				} else if peerModel.receivedCard == nil {
 					ToolbarItem(placement: .topBarLeading) {
-						Button {
-							baseViewModel.toggleSavedCards()
-						} label: {
-							Image(systemName: baseViewModel.isSavedCardShown ? "arrow.backward" : "square.grid.2x2.fill")
-						}
+						SavedCardsToolbarButton(
+							isSavedCardShown: $baseViewModel.isSavedCardShown,
+							onToggle: { baseViewModel.toggleSavedCards() }
+						)
 					}
 				}
 			}
