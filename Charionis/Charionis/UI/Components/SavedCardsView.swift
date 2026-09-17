@@ -17,7 +17,7 @@ struct SavedCardsView: View {
 	
 	var body: some View {
 		ZStack {
-			Color.black.opacity(isVisible ? 0.45 : 0.0)
+			Color.black.opacity(isVisible ? 0.75 : 0.0)
 				.ignoresSafeArea()
 				.animation(.easeInOut(duration: 0.3), value: isVisible)
 			
