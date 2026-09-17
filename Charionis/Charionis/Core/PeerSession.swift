@@ -20,8 +20,8 @@ final class PeerSession: NSObject, NISessionDelegate {
 	var remoteHeading: Double?
 	private(set) var lastLocalHeading: Double = 0.0
 	
-	var alignmentDistanceThreshold: Float = 0.2 // Meters
-	var facingAngleTolerance: Double = 10.0      // Degrees
+	var alignmentDistanceThreshold: Float = 0.3	// Meters
+	var facingAngleTolerance: Double = 20.0			// Degrees
 	
 	var onSpatialUpdate: (@Sendable (String, Float?, Bool, Bool) -> Void)?
 	var onSessionEnded: (@Sendable (String) -> Void)?
@@ -91,6 +91,9 @@ final class PeerSession: NSObject, NISessionDelegate {
 		let isAligned = isFacing && (currentDistance <= alignmentDistanceThreshold)
 		
 		notifySpatialUpdate(isFacing: isFacing, isAligned: isAligned)
+		
+		// TODO: Remove
+		print("> \(localHeading) \(remoteHeading) - \(angleError) \(isFacing) | \(currentDistance) | \(isAligned)")
 	}
 	
 	private func notifySpatialUpdate(isFacing: Bool, isAligned: Bool) {

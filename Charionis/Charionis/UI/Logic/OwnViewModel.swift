@@ -69,6 +69,7 @@ class OwnViewModel {
 	}
 	
 	private var sendTask: Task<Void, Never>?
+	private var hasTriggeredFeedback: Bool = false
 	
 	init(manager: SpatialManager, modelContext: ModelContext) {
 		self.manager = manager
@@ -87,7 +88,18 @@ class OwnViewModel {
 		
 		if !isRised {
 			isRised = true
+			HapticManager.shared.impact(.light)
 		}
+		
+		if isAligned {
+			if sendProgress >= 0.70 && !hasTriggeredFeedback {
+				HapticManager.shared.impact(.medium)
+				hasTriggeredFeedback = true
+			} else if sendProgress < 0.70 {
+				hasTriggeredFeedback = false
+			}
+		}
+		 
 		dragTranslation = translation
 	}
 	
@@ -110,6 +122,9 @@ class OwnViewModel {
 		} else {
 			cardPosition.width += translation.width
 			cardPosition.height += translation.height
+			
+			HapticManager.shared.impact(.light)
+			
 			scheduleRecenter()
 		}
 	}
@@ -119,6 +134,8 @@ class OwnViewModel {
 			isDetailPresented = false
 			flip.reset()
 		}
+		
+		HapticManager.shared.impact(.light)
 		
 		scheduleRecenter()
 	}
