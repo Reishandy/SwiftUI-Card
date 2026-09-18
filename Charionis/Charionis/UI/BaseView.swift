@@ -59,7 +59,7 @@ struct BaseView: View {
 					
 					// Own card backdrop detail
 					if ownModel.isDetailPresented {
-						Color.black.opacity(0.45)
+						Color.black.opacity(0.7)
 							.ignoresSafeArea()
 							.transition(.opacity)
 							.zIndex(1)
@@ -78,9 +78,16 @@ struct BaseView: View {
 						flipAngle: ownModel.flip.flipAngle,
 						tiltAngle: ownModel.flip.tiltAngle
 					)
+					.overlay {
+						if ownModel.isDetailPresented && !ownModel.isEditMode {
+							IndicatorDots(isBackVisible: ownModel.flip.isBackVisible)
+								.offset(y: 120)
+						}
+					}
 					.offset(
 						x: ownModel.isDetailPresented ? 0 : ownModel.cardScreenOffset.width,
-						y: ownModel.isDetailPresented ? 0 : (ownModel.cardScreenOffset.height + ownModel.transferYOffset)
+						y: (ownModel.isDetailPresented ? 0 : (ownModel.cardScreenOffset.height + ownModel.transferYOffset))
+						+ (ownModel.hasAppeared ? 0 : (DeviceMetrics.screenHeight + 100))
 					)
 					.scaleEffect(ownModel.isDetailPresented ? 1.15 : 1)
 					.opacity(ownModel.cardOpacity)
@@ -135,10 +142,22 @@ struct BaseView: View {
 						)
 					}
 					
+					// Wallet Chevron Indicator
+					if peerModel.receivedCard != nil {
+						WalletChevronIndicator(
+							isPresented: peerModel.isWalletPresented,
+							walletYOffset: peerModel.walletYOffset,
+							walletHeight: peerModel.walletHeight,
+							walletPeekAmount: peerModel.walletPeekAmount
+						)
+						.zIndex(3.5)
+					}
+					
 					// Bottom Peeking Wallet
 					if peerModel.receivedCard != nil {
 						VStack {
 							Spacer()
+				
 							WalletView()
 								.frame(height: peerModel.walletHeight)
 								.offset(y: peerModel.walletYOffset)
@@ -183,6 +202,14 @@ struct BaseView: View {
 				Task { @MainActor in
 					ownModel.dismissDetail()
 					baseViewModel.dismissSavedCards()
+				}
+			}
+			.task {
+				guard !ownModel.hasAppeared else { return }
+				try? await Task.sleep(for: .milliseconds(200))
+				
+				withAnimation(.spring(response: 0.75, dampingFraction: 0.75)) {
+					ownModel.hasAppeared = true
 				}
 			}
 		}
