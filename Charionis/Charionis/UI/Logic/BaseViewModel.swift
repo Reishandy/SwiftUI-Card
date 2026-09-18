@@ -18,7 +18,7 @@ class BaseViewModel {
 	
 	var backdropOpacity: Double {
 		let alignedOpacity = 0.5 + ownModel.sendProgress * 0.35
-		return alignedOpacity + (0.75 - alignedOpacity) * peerModel.receivedBackdropProgress
+		return alignedOpacity + (0.65 - alignedOpacity) * peerModel.receivedBackdropProgress
 	}
 	var gradientHeight: CGFloat {
 		let baseHeight: CGFloat = 200.0

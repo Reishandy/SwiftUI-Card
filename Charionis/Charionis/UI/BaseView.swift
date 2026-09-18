@@ -59,7 +59,7 @@ struct BaseView: View {
 					
 					// Own card backdrop detail
 					if ownModel.isDetailPresented {
-						Color.black.opacity(0.7)
+						Color.black.opacity(0.65)
 							.ignoresSafeArea()
 							.transition(.opacity)
 							.zIndex(1)
