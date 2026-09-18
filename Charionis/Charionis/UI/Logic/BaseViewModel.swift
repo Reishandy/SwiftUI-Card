@@ -18,7 +18,7 @@ class BaseViewModel {
 	
 	var backdropOpacity: Double {
 		let alignedOpacity = 0.5 + ownModel.sendProgress * 0.35
-		return alignedOpacity + (0.45 - alignedOpacity) * peerModel.receivedBackdropProgress
+		return alignedOpacity + (0.75 - alignedOpacity) * peerModel.receivedBackdropProgress
 	}
 	var gradientHeight: CGFloat {
 		let baseHeight: CGFloat = 200.0
@@ -51,7 +51,6 @@ class BaseViewModel {
 		areSavedCardsVisible = false
 		
 		savedCardsTask = Task { @MainActor in
-			// Yield one tick so the view mounts in its off-screen bottom position
 			try? await Task.sleep(for: .milliseconds(30))
 			guard !Task.isCancelled else { return }
 			areSavedCardsVisible = true
@@ -63,7 +62,6 @@ class BaseViewModel {
 		areSavedCardsVisible = false
 		
 		savedCardsTask = Task { @MainActor in
-			// Wait for cards to fly completely below the viewport before unmounting
 			try? await Task.sleep(for: .milliseconds(420))
 			guard !Task.isCancelled else { return }
 			isSavedCardShown = false

@@ -45,6 +45,7 @@ class OwnViewModel {
 		&& !ownCard.emailAddress.isEmpty
 		&& !ownCard.webUrl.isEmpty
 	}
+	var hasAppeared: Bool = false
 	
 	// Card sending
 	var isSending: Bool = false
@@ -145,8 +146,9 @@ class OwnViewModel {
 			guard isCardValid else { return }
 			saveOwnCard(ownCard)
 			
-			isEditMode = false
-			dismissDetail()
+			withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
+				isEditMode = false
+			}
 		} else {
 			withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
 				isDetailPresented = true

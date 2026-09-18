@@ -11,8 +11,14 @@ import SwiftUI
 final class FlipCardController {
 	var flipAngle: Double = 0.0
 	var tiltAngle: Double = 0.0
-	private var dragStartAngle: Double? = nil
 	
+	var isBackVisible: Bool {
+		let degrees = flipAngle.truncatingRemainder(dividingBy: 360)
+		let normalized = degrees < 0 ? degrees + 360 : degrees
+		return normalized > 90 && normalized < 270
+	}
+	
+	private var dragStartAngle: Double? = nil
 	private let tapDistanceThreshold: CGFloat = 6.0
 	private let flipDistanceThreshold: CGFloat = 200.0
 	

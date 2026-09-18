@@ -17,8 +17,6 @@ struct WalletView: View {
 }
 
 #Preview {
-	ZStack {
-		Color.gray
-		WalletView()
-	}
+	WalletView()
+		.ignoresSafeArea()
 }
